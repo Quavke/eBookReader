@@ -1,0 +1,94 @@
+package config
+
+import (
+	"ebookr/pkg/controllers"
+	"ebookr/pkg/models"
+	"ebookr/pkg/repositories"
+	"ebookr/pkg/routers"
+	"ebookr/pkg/services"
+	"fmt"
+	"log"
+
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+)
+type Config struct {
+	ServerPort int        `mapstructure:"SERVER_PORT"`
+		DB struct {
+		DBHost     string   `mapstructure:"DB_HOST"`
+		DBPort     int      `mapstructure:"DB_PORT"`
+		DBName     string   `mapstructure:"DB_NAME"`
+		DBUser     string   `mapstructure:"DB_USER"`
+		DBPassword string   `mapstructure:"DB_PASSWORD"`
+		TimeZone   string   `mapstructure:"TIME_ZONE"`
+		SSLMode    string   `mapstructure:"SSLMode"`
+		DSN        string
+	}   									`mapstructure:"db"`
+}
+type App struct {
+	router *gin.Engine
+	cfg    *Config
+}
+
+func NewConfig() (*Config, error) {
+	v := viper.New()
+
+	v.SetDefault("SERVER_PORT", 8080)
+	v.SetDefault("DB_PORT", 5432)
+
+	v.SetConfigName("config")
+	v.SetConfigType("yaml")
+	v.AddConfigPath(".")
+
+	if err := v.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return nil, fmt.Errorf("error reading config: %w", err)
+		}
+	}
+
+	v.AutomaticEnv()
+
+	var cfg Config
+	if err := v.Unmarshal(&cfg); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+
+	cfg.DB.DSN = fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s",
+		cfg.DB.DBHost, cfg.DB.DBUser, cfg.DB.DBPassword, cfg.DB.DBName, cfg.DB.DBPort, cfg.DB.SSLMode, cfg.DB.TimeZone,
+	)
+
+	return &cfg, nil
+}
+
+
+func NewApp(cfg *Config) *App {
+	router := gin.Default()
+	db, err := gorm.Open(postgres.Open(cfg.DB.DSN), &gorm.Config{
+  Logger: logger.Default.LogMode(logger.Info), // Включаем логи SQL
+	})
+	if err != nil {
+		errorMsg := fmt.Sprintf("Cannot create database. Err: %v", err.Error())
+		log.Fatal(errorMsg)
+	}
+	db.AutoMigrate(&models.Book{})
+	
+	// Инициализация
+	bookRepo := repositories.NewGormBookRepo(db)
+	bookService := services.NewBookService(bookRepo)
+	bookController := controllers.NewBookController(bookService)
+
+	routers.RegisterBookRoutes(router, bookController)
+	
+	return &App{
+		router: router,
+		cfg:    cfg,
+	}
+}
+
+func (a *App) Run() error {
+	return a.router.Run(fmt.Sprintf(":%d", a.cfg.ServerPort))
+}

@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: dockerfile
+        container_name: go_app
+        ports:
+            - "8080:8080"
+        depends_on:
+            - db
+        volumes:
+            - ./cmd/main/config.yaml:/app/config.yaml # если хочешь монтировать
+        environment:
+            - CONFIG_PATH=/app/config.yaml # если Viper использует переменную окружения (опционально)
+
+    db:
+        image: postgres:15
+        container_name: postgres
+        restart: always
+        ports:
+            - "5432:5432"
+        environment:
+            POSTGRES_DB: postgres
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: 248504
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+
+volumes:
+    postgres_data:
