@@ -31,3 +31,7 @@ go.work.sum
 # .idea/
 .vscode/
 cmd/main/config.yaml
+
+#Docker
+docker-compose.yaml
+dockerfile
