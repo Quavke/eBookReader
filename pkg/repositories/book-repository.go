@@ -25,10 +25,7 @@ func NewGormBookRepo(db *gorm.DB) *GormBookRepo{
 }
 
 func (r GormBookRepo) Create(book *models.Book) error{
-	if err := r.db.Create(book).Error; err != nil{
-		return err
-	}
-	return nil
+	return r.db.Create(book).Error
 }
 
 func (r GormBookRepo) GetByID(id int) (*models.Book, error) {
@@ -56,7 +53,9 @@ func (r GormBookRepo) Update(bookNew *models.Book, id int) error {
 	return r.db.Model(&existing).Updates(map[string]interface{}{
         "title":    bookNew.Title,
         "Content":  bookNew.Content,
-        "author":   bookNew.Author,
+        "author_firstname":   bookNew.Author.Firstname,
+				"author_lastname":   bookNew.Author.Lastname,
+				"author_birthday":   bookNew.Author.Birthday,
     }).Error
 }
 func (r GormBookRepo) Delete(id int) error{
