@@ -16,17 +16,19 @@ import (
 	"gorm.io/gorm/logger"
 )
 type Config struct {
-	ServerPort int        `mapstructure:"SERVER_PORT"`
+		Server struct {
+			ServerPort int      `mapstructure:"SERVER_PORT"`
+		}											`mapstructure:"server"`
 		DB struct {
-		DBHost     string   `mapstructure:"DB_HOST"`
-		DBPort     int      `mapstructure:"DB_PORT"`
-		DBName     string   `mapstructure:"DB_NAME"`
-		DBUser     string   `mapstructure:"DB_USER"`
-		DBPassword string   `mapstructure:"DB_PASSWORD"`
-		TimeZone   string   `mapstructure:"TIME_ZONE"`
-		SSLMode    string   `mapstructure:"SSLMode"`
-		DSN        string
-	}   									`mapstructure:"db"`
+			DBHost     string   `mapstructure:"DB_HOST"`
+			DBPort     int      `mapstructure:"DB_PORT"`
+			DBName     string   `mapstructure:"DB_NAME"`
+			DBUser     string   `mapstructure:"DB_USER"`
+			DBPassword string   `mapstructure:"DB_PASSWORD"`
+			TimeZone   string   `mapstructure:"TIME_ZONE"`
+			SSLMode    string   `mapstructure:"SSLMode"`
+			DSN        string
+	}   									  `mapstructure:"db"`
 }
 type App struct {
 	router *gin.Engine
@@ -35,9 +37,6 @@ type App struct {
 
 func NewConfig() (*Config, error) {
 	v := viper.New()
-
-	v.SetDefault("SERVER_PORT", 8080)
-	v.SetDefault("DB_PORT", 5432)
 
 	v.SetConfigName("config")
 	v.SetConfigType("yaml")
@@ -90,5 +89,5 @@ func NewApp(cfg *Config) *App {
 }
 
 func (a *App) Run() error {
-	return a.router.Run(fmt.Sprintf(":%d", a.cfg.ServerPort))
+	return a.router.Run(fmt.Sprintf(":%d", a.cfg.Server.ServerPort))
 }
