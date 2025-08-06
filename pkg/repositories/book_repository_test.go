@@ -264,3 +264,59 @@ func TestBookRepo_Update(t *testing.T) {
 
     assert.NoError(t, mock.ExpectationsWereMet())
 }
+
+func TestBookRepo_Create(t *testing.T) {
+  db, mock, err := sqlmock.New()
+  assert.NoError(t, err)
+  defer db.Close()
+
+  gormDB, err := gorm.Open(postgres.New(postgres.Config{Conn: db}), &gorm.Config{})
+  assert.NoError(t, err)
+
+  repo := repositories.NewGormBookRepo(gormDB)
+
+  now := time.Now().UTC()
+  testBook := &models.Book{
+    ID: 1,
+    Title: "Test book. Create",
+    Content: "Test test test create",
+    CreatedAt: now,
+    UpdatedAt: now,
+    Author: models.Author{
+      Firstname: "Alexz",
+      Lastname: "Zaa",
+      Birthday: now,
+      CreatedAt: now,
+      UpdatedAt: now,
+    },
+  }
+  mock.ExpectBegin()
+
+  query := regexp.QuoteMeta(`INSERT INTO "books" ("title","content","created_at","updated_at","author_firstname","author_lastname","author_birthday","author_created_at","author_updated_at","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING "id"`)
+
+  row := sqlmock.NewRows([]string{
+        "id", "title", "content", "created_at", "updated_at",
+        "author_firstname", "author_lastname", "author_birthday", "author_created_at", "author_updated_at",
+    })
+  row.AddRow(
+    testBook.ID,
+    testBook.Title,
+    testBook.Content,
+    testBook.CreatedAt,
+    testBook.UpdatedAt,
+    testBook.Author.Firstname,
+    testBook.Author.Lastname,
+    testBook.Author.Birthday,
+    testBook.Author.CreatedAt,
+    testBook.Author.UpdatedAt,
+  )
+
+  mock.ExpectQuery(query).WillReturnRows(row)
+
+  mock.ExpectCommit()
+
+  err = repo.Create(testBook)
+
+  assert.NoError(t, err)
+  assert.NoError(t, mock.ExpectationsWereMet())
+}
