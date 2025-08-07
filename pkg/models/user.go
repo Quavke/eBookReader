@@ -5,9 +5,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type User struct {
+type RegisterReq struct {
+	Username string `json:"username" binding:"required" gorm:"min=5, not null"`
+	Password string `json:"password" binding:"required"`
+}
+
+type UserDB struct {
 	gorm.Model
 	Username string `json:"username" binding:"required" gorm:"min=5, not null"`
+	Password []byte `json:"password" binding:"required" gorm:"not null"`
 }
 
 type LoginReq struct {

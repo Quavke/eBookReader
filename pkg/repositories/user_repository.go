@@ -7,11 +7,11 @@ import (
 )
 
 type UserRepo interface {
-    Create(user *models.User) error
-    GetByID(id int) (*models.User, error)
-    GetAll() ([]models.User, error)
-    Update(user *models.User, id int) error
-    Delete(id int) error
+    Create(user *models.UserDB) error
+    GetByID(id uint) (*models.UserDB, error)
+    GetAll() ([]models.UserDB, error)
+    Update(user *models.UserDB, id uint) error
+    Delete(id uint) error
 }
 
 type GormUserRepo struct {
@@ -25,7 +25,7 @@ func NewGormUserRepo(db *gorm.DB) *GormUserRepo{
 	return &GormUserRepo{db: db}
 }
 
-func (r *GormUserRepo) Create(user *models.User) error{
+func (r *GormUserRepo) Create(user *models.UserDB) error{
 	result := r.db.Create(user)
 	if result.RowsAffected == 0 {
     return gorm.ErrRecordNotFound
@@ -33,8 +33,8 @@ func (r *GormUserRepo) Create(user *models.User) error{
 	return result.Error
 }
 
-func (r *GormUserRepo) GetByID(id int) (*models.User, error){
-	var user models.User
+func (r *GormUserRepo) GetByID(id uint) (*models.UserDB, error){
+	var user models.UserDB
 	result := r.db.First(&user, id)
 	if result.RowsAffected == 0 {
     return nil, gorm.ErrRecordNotFound
@@ -45,8 +45,8 @@ func (r *GormUserRepo) GetByID(id int) (*models.User, error){
 	return &user, nil
 }
 
-func (r *GormUserRepo) GetAll() ([]models.User, error){
-	var user []models.User
+func (r *GormUserRepo) GetAll() ([]models.UserDB, error){
+	var user []models.UserDB
 	result := r.db.Find(&user)
 	if result.RowsAffected == 0 {
 		return nil, gorm.ErrRecordNotFound
@@ -57,9 +57,9 @@ func (r *GormUserRepo) GetAll() ([]models.User, error){
 	return user, nil
 }
 
-func (r *GormUserRepo) Update(user *models.User, id int) error{
+func (r *GormUserRepo) Update(user *models.UserDB, id uint) error{
 	return r.db.Transaction(func(tx *gorm.DB) error {
-        var existing models.User
+        var existing models.UserDB
         result := tx.First(&existing, id)
         if result.RowsAffected == 0 {
             return gorm.ErrRecordNotFound
@@ -67,7 +67,7 @@ func (r *GormUserRepo) Update(user *models.User, id int) error{
         if err := result.Error; err != nil {
             return err
         }
-        updates := models.User{
+        updates := models.UserDB{
             Username: user.Username,
         }
 
@@ -79,8 +79,8 @@ func (r *GormUserRepo) Update(user *models.User, id int) error{
     })
 }
 
-func (r *GormUserRepo) Delete(id int) error{
-	var user models.User
+func (r *GormUserRepo) Delete(id uint) error{
+	var user models.UserDB
 	result := r.db.Delete(&user, id)
 	if result.RowsAffected == 0 {
         return gorm.ErrRecordNotFound

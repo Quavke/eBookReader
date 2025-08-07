@@ -58,7 +58,9 @@ func NewConfig() (*Config, error) {
 	if err := v.Unmarshal(&cfg); err != nil { // , viper.DecodeHook(hook)
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
-
+	if cfg.DB.Host == "" || cfg.DB.User == "" || cfg.DB.Name == "" {
+    return nil,fmt.Errorf("db host/user/name are required")
+  }
 	return &cfg, nil
 }
 
@@ -85,7 +87,7 @@ func NewApp(cfg *Config) (*App, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
-	db.AutoMigrate(&models.Author{}, &models.Book{}, &models.User{})
+	db.AutoMigrate(&models.Author{}, &models.Book{}, &models.UserDB{})
 	
 	bookRepo := repositories.NewGormBookRepo(db)
 	bookService := services.NewBookService(bookRepo)
