@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterAuthorRoutes(router *gin.Engine, ctrl *controllers.AuthorController) {
+func RegisterAuthorRoutes(router *gin.RouterGroup, ctrl *controllers.AuthorController) {
 	group := router.Group("/api/v1")
 	{
 		group.GET("/authors", ctrl.GetAll)

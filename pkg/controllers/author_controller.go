@@ -38,7 +38,7 @@ func (ctrl *AuthorController) GetByID(c *gin.Context){
 	}
 	author, err := ctrl.AuthorService.GetAuthorByID(id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "error", "error": "can't get book by this id"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "error", "error": "can't get author by this id"})
 		log.Println(err.Error())
 		return
 	}
@@ -49,13 +49,13 @@ func (ctrl *AuthorController) Create(c *gin.Context){
 	var author models.Author
 
 	if err := c.ShouldBindBodyWithJSON(&author); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "error", "error": "something wrong with book"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "error", "error": "something wrong with author"})
 		log.Println(err.Error())
 		return
 	}
 
 	if err := ctrl.AuthorService.CreateAuthor(&author); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "error", "error": "can't create book"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "error", "error": "can't create author"})
 		log.Println(err.Error())
 		return
 	}
@@ -74,12 +74,12 @@ func (ctrl *AuthorController) Update(c *gin.Context){
 	}
 
 	if err := c.ShouldBindBodyWithJSON(&author); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "error", "error": "something wrong with book"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "error", "error": "something wrong with author"})
 		log.Println(err.Error())
 		return
 	}
 	if err := ctrl.AuthorService.UpdateAuthor(&author, id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "error", "error": "can't update book"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "error", "error": "can't update author"})
 		log.Println(err.Error())
 		return
 	}
@@ -96,7 +96,7 @@ func (ctrl *AuthorController) Delete(c *gin.Context){
 	}
 
 	if err := ctrl.AuthorService.DeleteAuthor(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "error", "error": "can't delete book by this id"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "error", "error": "can't delete author by this id"})
 		log.Println(err.Error())
 		return
 	}

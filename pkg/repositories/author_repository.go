@@ -19,6 +19,8 @@ type GormAuthorRepo struct {
 }
 
 var _ AuthorRepo = (*GormAuthorRepo)(nil)
+//TODO Добавить RowsAffected
+
 
 func NewGormAuthorRepo(db *gorm.DB) *GormAuthorRepo{
 	return &GormAuthorRepo{db: db}
@@ -29,11 +31,11 @@ func (r GormAuthorRepo) Create(author *models.Author) error{
 }
 
 func (r GormAuthorRepo) GetByID(id int) (*models.Author, error){
-	var author *models.Author
-	if err := r.db.First(author, id).Error; err != nil{
+	var author models.Author
+	if err := r.db.Preload("Books").First(&author, id).Error; err != nil{
 		return nil, err
 	}
-	return author, nil
+	return &author, nil
 }
 
 func (r GormAuthorRepo) GetAll() ([]models.Author, error){
@@ -62,8 +64,8 @@ func (r GormAuthorRepo) Update(author *models.Author, id int) error{
 }
 
 func (r GormAuthorRepo) Delete(id int) error{
-	var author *models.Author
-	result := r.db.Delete(author, id)
+	var author models.Author
+	result := r.db.Delete(&author, id)
 	if result.RowsAffected == 0 {
     return gorm.ErrRecordNotFound
   }

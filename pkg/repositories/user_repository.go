@@ -34,15 +34,15 @@ func (r *GormUserRepo) Create(user *models.User) error{
 }
 
 func (r *GormUserRepo) GetByID(id int) (*models.User, error){
-	var user *models.User
-	result := r.db.First(user, id)
+	var user models.User
+	result := r.db.First(&user, id)
 	if result.RowsAffected == 0 {
     return nil, gorm.ErrRecordNotFound
   }
 	if err := result.Error; err != nil {
 		return nil, err
 	}
-	return user, nil
+	return &user, nil
 }
 
 func (r *GormUserRepo) GetAll() ([]models.User, error){

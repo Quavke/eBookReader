@@ -7,7 +7,7 @@ import (
 	"ebookr/pkg/routers"
 	"ebookr/pkg/services"
 	"fmt"
-	"log"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -17,16 +17,16 @@ import (
 )
 type Config struct {
 		Server struct {
-			ServerPort int      `mapstructure:"SERVER_PORT"`
+			Port int      `mapstructure:"PORT"`
 		}											`mapstructure:"server"`
 		DB struct {
-			DBHost     string   `mapstructure:"DB_HOST"`
-			DBPort     int      `mapstructure:"DB_PORT"`
-			DBName     string   `mapstructure:"DB_NAME"`
-			DBUser     string   `mapstructure:"DB_USER"`
-			DBPassword string   `mapstructure:"DB_PASSWORD"`
+			Host     string   `mapstructure:"HOST"`
+			Port     int      `mapstructure:"PORT"`
+			Name     string   `mapstructure:"NAME"`
+			User     string   `mapstructure:"USER"`
+			Password string   `mapstructure:"PASSWORD"`
 			TimeZone   string   `mapstructure:"TIME_ZONE"`
-			SSLMode    string   `mapstructure:"SSLMode"`
+			SSLMode    string   `mapstructure:"SSL_Mode"`
 			DSN        string
 		}   									  `mapstructure:"db"`
 		// JWT struct {
@@ -63,20 +63,27 @@ func NewConfig() (*Config, error) {
 }
 
 
-func NewApp(cfg *Config) *App {
+func NewApp(cfg *Config) (*App, error) {
 	router := gin.Default()
-	fmt.Printf("DB password: %v", cfg.DB.DBPassword)
+	v1 := router.Group("/api/v1")
+	// fmt.Printf("DB password: %v", cfg.DB.Password)
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s",
-		cfg.DB.DBHost, cfg.DB.DBUser, cfg.DB.DBPassword, cfg.DB.DBName, cfg.DB.DBPort, cfg.DB.SSLMode, cfg.DB.TimeZone,
+		cfg.DB.Host, cfg.DB.User, cfg.DB.Password, cfg.DB.Name, cfg.DB.Port, cfg.DB.SSLMode, cfg.DB.TimeZone,
 	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
   Logger: logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
-		errorMsg := fmt.Sprintf("Cannot create database. Err: %v", err.Error())
-		log.Fatal(errorMsg)
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
+	}
+	sqlDB, err := db.DB()
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetConnMaxLifetime(1 * time.Hour)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 	db.AutoMigrate(&models.Author{}, &models.Book{}, &models.User{})
 	
@@ -92,15 +99,15 @@ func NewApp(cfg *Config) *App {
 	userService := services.NewUserService(userRepo)
 	userController := controllers.NewUserController(userService)
 
-	routers.RegisterBookRoutes(router, bookController)
-	routers.RegisterAuthorRoutes(router, authorController)
-	routers.RegisterUserRoutes(router, userController) // , middlewares.AuthMiddleware()
+	routers.RegisterBookRoutes(v1, bookController)
+	routers.RegisterAuthorRoutes(v1, authorController)
+	routers.RegisterUserRoutes(v1, userController) // , middlewares.AuthMiddleware()
 	return &App{
 		router: router,
 		cfg:    cfg,
-	}
+	}, nil
 }
 
 func (a *App) Run() error {
-	return a.router.Run(fmt.Sprintf(":%d", a.cfg.Server.ServerPort))
+	return a.router.Run(fmt.Sprintf(":%d", a.cfg.Server.Port))
 }

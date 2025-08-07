@@ -25,6 +25,11 @@ func NewGormBookRepo(db *gorm.DB) *GormBookRepo{
 }
 
 func (r *GormBookRepo) Create(book *models.Book) error{
+    var author models.Author
+    err := r.db.First(&author, book.AuthorID).Error
+    if err != nil {
+        return err
+    }
     result := r.db.Create(book)
     if result.RowsAffected == 0 {
         return gorm.ErrRecordNotFound
@@ -33,15 +38,15 @@ func (r *GormBookRepo) Create(book *models.Book) error{
 }
 
 func (r *GormBookRepo) GetByID(id int) (*models.Book, error) {
-	var book *models.Book
-    result := r.db.First(book, id)
+	var book models.Book
+    result := r.db.First(&book, id)
     if result.RowsAffected == 0 {
         return nil, gorm.ErrRecordNotFound
     }
 	if err := result.Error; err != nil{
 		return nil, err
 	}
-	return book, nil
+	return &book, nil
 }
 
 

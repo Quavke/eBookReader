@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterUserRoutes(router *gin.Engine, ctrl *controllers.UserController){ // , jwt gin.HandlerFunc
+func RegisterUserRoutes(router *gin.RouterGroup, ctrl *controllers.UserController){ // , jwt gin.HandlerFunc
 	group := router.Group("/api/v1")
 	{
 		group.GET("/users", ctrl.GetAll)

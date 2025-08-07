@@ -11,6 +11,8 @@ type UserController struct {
 	UserService services.UserService
 }
 
+// TODO Написать реализацию контроллеров
+
 func NewUserController(service services.UserService) *UserController{
 	return &UserController{UserService: service}
 }

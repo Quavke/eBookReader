@@ -35,7 +35,7 @@ func TestBookRepo_GetAll(t *testing.T) {
         },
         Title:    "Test Book 1",
         Content:  "This is a long enough content string to pass validation... 1",
-        AuthorID: uint64(123),
+        AuthorID: uint(123),
         },
         {
         Model: gorm.Model{
@@ -46,7 +46,7 @@ func TestBookRepo_GetAll(t *testing.T) {
         },
         Title:    "Test Book 2",
         Content:  "This is a long enough content string to pass validation... 2",
-        AuthorID: uint64(124),
+        AuthorID: uint(124),
             },
         }
     

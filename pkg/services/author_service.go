@@ -3,6 +3,7 @@ package services
 import (
 	"ebookr/pkg/models"
 	"ebookr/pkg/repositories"
+	"log"
 )
 
 type AuthorService interface {
@@ -32,6 +33,7 @@ func (s *AuthorServiceImpl) GetAllAuthors() (*[]models.Author, error){
 func (s *AuthorServiceImpl) GetAuthorByID(id int) (*models.Author, error){
 	author, err := s.repo.GetByID(id)
 	if err != nil {
+		log.Default().Print("It is a service error")
 		return nil, err
 	}
 	return author, nil
