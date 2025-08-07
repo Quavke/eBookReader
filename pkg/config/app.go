@@ -28,7 +28,10 @@ type Config struct {
 			TimeZone   string   `mapstructure:"TIME_ZONE"`
 			SSLMode    string   `mapstructure:"SSLMode"`
 			DSN        string
-	}   									  `mapstructure:"db"`
+		}   									  `mapstructure:"db"`
+		JWT struct {
+			SecretKey string `mapstructure:"SECRET_KEY"`
+		} `mapstructure:"jwt"`
 }
 type App struct {
 	router *gin.Engine
