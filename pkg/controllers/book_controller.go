@@ -14,8 +14,8 @@ type BookController struct {
 	BookService services.BookService
 }
 
-func NewBookController(svc services.BookService) *BookController {
-	return &BookController{BookService: svc}
+func NewBookController(service services.BookService) *BookController {
+	return &BookController{BookService: service}
 }
 
 func (ctrl BookController) GetAll(c *gin.Context){
