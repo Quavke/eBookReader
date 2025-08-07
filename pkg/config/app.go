@@ -24,13 +24,14 @@ type Config struct {
 			DBPort     int      `mapstructure:"DB_PORT"`
 			DBName     string   `mapstructure:"DB_NAME"`
 			DBUser     string   `mapstructure:"DB_USER"`
-			DBPassword string   `mapstructure:"DB_PASSWORD"`
+			dbPassword string   `mapstructure:"DB_PASSWORD"`
 			TimeZone   string   `mapstructure:"TIME_ZONE"`
 			SSLMode    string   `mapstructure:"SSLMode"`
 			DSN        string
 		}   									  `mapstructure:"db"`
 		JWT struct {
-			SecretKey string `mapstructure:"SECRET_KEY"`
+			secretKeyStr string `mapstructure:"SECRET_KEY"`
+			secretKey 	[]byte
 		} `mapstructure:"jwt"`
 }
 type App struct {
@@ -54,14 +55,18 @@ func NewConfig() (*Config, error) {
 	v.AutomaticEnv()
 
 	var cfg Config
+
 	if err := v.Unmarshal(&cfg); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
 	cfg.DB.DSN = fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s",
-		cfg.DB.DBHost, cfg.DB.DBUser, cfg.DB.DBPassword, cfg.DB.DBName, cfg.DB.DBPort, cfg.DB.SSLMode, cfg.DB.TimeZone,
+		cfg.DB.DBHost, cfg.DB.DBUser, cfg.DB.dbPassword, cfg.DB.DBName, cfg.DB.DBPort, cfg.DB.SSLMode, cfg.DB.TimeZone,
 	)
+
+	cfg.JWT.secretKey = []byte(cfg.JWT.secretKeyStr)
+	cfg.ClearSecretKeyStr()
 
 	return &cfg, nil
 }
@@ -93,4 +98,14 @@ func NewApp(cfg *Config) *App {
 
 func (a *App) Run() error {
 	return a.router.Run(fmt.Sprintf(":%d", a.cfg.Server.ServerPort))
+}
+
+func (cfg *Config) ClearSecretKeyStr() {
+    buf := []byte(cfg.JWT.secretKeyStr)
+
+    for i := range buf {
+        buf[i] = 0
+    }
+
+    cfg.JWT.secretKeyStr = ""
 }
