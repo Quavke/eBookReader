@@ -18,7 +18,7 @@ func NewBookController(service services.BookService) *BookController {
 	return &BookController{BookService: service}
 }
 
-func (ctrl BookController) GetAll(c *gin.Context){
+func (ctrl *BookController) GetAll(c *gin.Context){
 	books, err := ctrl.BookService.GetAllBooks()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "error", "error": "can't get all books"})
@@ -28,7 +28,7 @@ func (ctrl BookController) GetAll(c *gin.Context){
 	c.JSON(http.StatusOK, gin.H{"message": "successful", "error": nil, "books": books})
 }
 
-func (ctrl BookController) GetByID(c *gin.Context){
+func (ctrl *BookController) GetByID(c *gin.Context){
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -44,7 +44,8 @@ func (ctrl BookController) GetByID(c *gin.Context){
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "successful create", "error": nil, "book": book})
 }
-func (ctrl BookController) Create(c *gin.Context){
+
+func (ctrl *BookController) Create(c *gin.Context){
 	var book models.Book
 
 	if err := c.ShouldBindBodyWithJSON(&book); err != nil {
@@ -61,7 +62,7 @@ func (ctrl BookController) Create(c *gin.Context){
 	c.JSON(http.StatusOK, gin.H{"message": "successful create", "error": nil})
 }
 
-func (ctrl BookController) Update(c *gin.Context){
+func (ctrl *BookController) Update(c *gin.Context){
 	var book models.Book
 
 	idStr := c.Param("id")
@@ -85,7 +86,7 @@ func (ctrl BookController) Update(c *gin.Context){
 	c.JSON(http.StatusOK, gin.H{"message": "successful update", "error": nil})
 }
 
-func (ctrl BookController) Delete(c *gin.Context){
+func (ctrl *BookController) Delete(c *gin.Context){
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {

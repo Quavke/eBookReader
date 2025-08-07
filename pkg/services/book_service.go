@@ -38,22 +38,13 @@ func (s *BookServiceImpl) GetBookByID(id int) (*models.Book, error) {
 }
 
 func (s *BookServiceImpl) CreateBook(book *models.Book) error{
-	if err := s.repo.Create(book); err != nil {
-		return err
-	}
-	return nil
+	return s.repo.Create(book)
 }
 
 func (s *BookServiceImpl) UpdateBook(book *models.Book, id int) error {
-	if err := s.repo.Update(book, id); err != nil {
-		return err
-	}
-	return nil
+	return s.repo.Update(book, id)
 }
 
 func (s *BookServiceImpl) DeleteBook(id int) error {
-	if err := s.repo.Delete(id); err != nil {
-		return err
-	}
-	return nil
+	return s.repo.Delete(id)
 }

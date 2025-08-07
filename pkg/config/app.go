@@ -84,13 +84,17 @@ func NewApp(cfg *Config) *App {
 	bookService := services.NewBookService(bookRepo)
 	bookController := controllers.NewBookController(bookService)
 
-	// userRepo := repositories.NewGormUserRepo(db)
-	// userService := services.NewUserService(userRepo)
-	// userController := controllers.NewUserController(userService)
+	authorRepo := repositories.NewGormAuthorRepo(db)
+	authorService := services.NewAuthorService(authorRepo)
+	authorController := controllers.NewAuthorController(authorService)
+
+	userRepo := repositories.NewGormUserRepo(db)
+	userService := services.NewUserService(userRepo)
+	userController := controllers.NewUserController(userService)
 
 	routers.RegisterBookRoutes(router, bookController)
-	// routers.RegisterUserRoutes(router, userController, middlewares.AuthMiddleware(cfg.JWT.secretKey))
-	
+	routers.RegisterAuthorRoutes(router, authorController)
+	routers.RegisterUserRoutes(router, userController) // , middlewares.AuthMiddleware()
 	return &App{
 		router: router,
 		cfg:    cfg,
