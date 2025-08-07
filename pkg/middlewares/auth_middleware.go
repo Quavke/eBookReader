@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"gorm.io/gorm"
 )
 
 func AuthMiddleware(jwtSecretKey []byte) gin.HandlerFunc {
@@ -40,7 +41,9 @@ func AuthMiddleware(jwtSecretKey []byte) gin.HandlerFunc {
 
 		if claims, ok := token.Claims.(*models.Claims); ok && token.Valid {
 			user := &models.User{
-				ID: claims.UserID,
+				Model: gorm.Model{
+					ID: uint(claims.UserID),
+				},
 				Username: claims.Username,
 			}
 

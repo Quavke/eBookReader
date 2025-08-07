@@ -12,7 +12,7 @@ func GenerateToken(user *models.User, jwtSecretKey []byte) (string, error) {
 	expTime := time.Now().Add(24 * time.Hour)
 
 	claims := &models.Claims{
-		UserID: user.ID,
+		UserID: uint64(user.Model.ID),
 		Username: user.Username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expTime),
