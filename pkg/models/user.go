@@ -2,11 +2,12 @@ package models
 
 import (
 	"github.com/golang-jwt/jwt/v5"
+	"gorm.io/gorm"
 )
 
 type User struct {
-	ID uint64 `json:"id"`
-	Username string `json:"username"`
+	gorm.Model
+	Username string `json:"username" binding:"required" gorm:"min=5, not null"`
 }
 
 type LoginReq struct {

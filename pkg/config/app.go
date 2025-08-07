@@ -78,7 +78,7 @@ func NewApp(cfg *Config) *App {
 		errorMsg := fmt.Sprintf("Cannot create database. Err: %v", err.Error())
 		log.Fatal(errorMsg)
 	}
-	db.AutoMigrate(&models.Author{}, &models.Book{})
+	db.AutoMigrate(&models.Author{}, &models.Book{}, &models.User{})
 	
 	bookRepo := repositories.NewGormBookRepo(db)
 	bookService := services.NewBookService(bookRepo)

@@ -10,7 +10,7 @@ type BookRepo interface {
     Create(book *models.Book) error
     GetByID(id int) (*models.Book, error)
     GetAll() ([]models.Book, error)
-    Update(bookNew *models.Book, id int) error
+    Update(book *models.Book, id int) error
     Delete(id int) error
 }
 
@@ -25,40 +25,59 @@ func NewGormBookRepo(db *gorm.DB) *GormBookRepo{
 }
 
 func (r *GormBookRepo) Create(book *models.Book) error{
-	return r.db.Create(book).Error
+    result := r.db.Create(book)
+    if result.RowsAffected == 0 {
+        return gorm.ErrRecordNotFound
+    }
+	return result.Error
 }
 
 func (r *GormBookRepo) GetByID(id int) (*models.Book, error) {
-	var book models.Book
-	if err := r.db.First(&book, id).Error; err != nil{
+	var book *models.Book
+    result := r.db.First(book, id)
+    if result.RowsAffected == 0 {
+        return nil, gorm.ErrRecordNotFound
+    }
+	if err := result.Error; err != nil{
 		return nil, err
 	}
-	return &book, nil
+	return book, nil
 }
 
 
 
 func (r *GormBookRepo) GetAll() ([]models.Book, error){
 	var book []models.Book
-	if err := r.db.Find(&book).Error; err != nil{
+    result := r.db.Find(&book)
+    if result.RowsAffected == 0 {
+        return nil, gorm.ErrRecordNotFound
+    }
+	if err := result.Error; err != nil{
 		return nil, err
 	}
 	return book, nil
 }
 
-func (r *GormBookRepo) Update(bookNew *models.Book, id int) error {
+func (r *GormBookRepo) Update(book *models.Book, id int) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
         var existing models.Book
-        if err := tx.First(&existing, id).Error; err != nil {
+        result := tx.First(&existing, id)
+        if result.RowsAffected == 0 {
+            return gorm.ErrRecordNotFound
+        }
+        if err := result.Error; err != nil {
             return err
         }
-        
         updates := models.Book{
-            Title:   bookNew.Title,
-            Content: bookNew.Content,
+            Title:   book.Title,
+            Content: book.Content,
         }
-        
-        return tx.Model(&existing).Updates(updates).Error
+
+        result = tx.Model(&existing).Updates(updates)
+        if result.RowsAffected == 0 {
+            return gorm.ErrRecordNotFound
+        }
+        return result.Error
     })
 }
 
@@ -66,7 +85,7 @@ func (r *GormBookRepo) Delete(id int) error{
 	var book models.Book
 	result := r.db.Delete(&book, id)
 	if result.RowsAffected == 0 {
-    return gorm.ErrRecordNotFound
-  }
+        return gorm.ErrRecordNotFound
+    }
 	return result.Error
 }
