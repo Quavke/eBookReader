@@ -60,10 +60,11 @@ func (s *UserServiceImpl) LoginUser(user *models.RegisterReq) error {
 	userDB, err := s.repo.GetByUsername(user.Username)
 	if err != nil {
 		return err
-	} 
+	}
 	if err := bcrypt.CompareHashAndPassword(userDB.PasswordHash, []byte(user.Password)); err != nil {
 		return err
 	}
+	user.Password = ""
 	return nil
 }
 

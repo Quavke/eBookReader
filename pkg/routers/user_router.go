@@ -11,6 +11,7 @@ func RegisterUserRoutes(group *gin.RouterGroup, ctrl *controllers.UserController
 		group.GET("/users", ctrl.GetAll)
 		group.GET("/users/:id", ctrl.GetByID)
 		group.POST("/users", ctrl.Create)
+		group.POST("/users/login", ctrl.Login)
 		group.PUT("/users/:id", ctrl.Update)
 		group.DELETE("/users/:id", ctrl.Delete)
 	}
