@@ -12,6 +12,7 @@ type UserRepo interface {
     GetAll() ([]models.UserDB, error)
     Update(user *models.UserDB, id uint) error
     Delete(id uint) error
+    GetByUsername(username string) (*models.UserDB, error)
 }
 
 type GormUserRepo struct {
@@ -86,4 +87,16 @@ func (r *GormUserRepo) Delete(id uint) error{
         return gorm.ErrRecordNotFound
     }
 	return result.Error
+}
+
+func (r *GormUserRepo) GetByUsername(username string) (*models.UserDB, error) {
+    var user models.UserDB
+	result := r.db.Where("username = ?", username).First(&user)
+	if result.RowsAffected == 0 {
+    return nil, gorm.ErrRecordNotFound
+    }
+	if err := result.Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
 }

@@ -6,19 +6,19 @@ import (
 )
 
 type RegisterReq struct {
-	Username string `json:"username" binding:"required" gorm:"min=5, not null"`
-	Password string `json:"password" binding:"required"`
+	Username string `json:"username" binding:"required,min=5"`
+	Password string `json:"password" binding:"required,min=8"`
 }
 
 type UserDB struct {
 	gorm.Model
-	Username string `json:"username" binding:"required" gorm:"min=5, not null"`
-	Password []byte `json:"password" binding:"required" gorm:"not null"`
+	Username string     `gorm:"type:varchar(64);not null;uniqueIndex:ux_users_username"`
+	PasswordHash []byte `json:"-" gorm:"not null"`
 }
 
 type LoginReq struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Username string `json:"username" binding:"required,min=5"`
+	Password string `json:"password" binding:"required,min=8"`
 }
 
 type Claims struct {

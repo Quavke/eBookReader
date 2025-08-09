@@ -10,7 +10,8 @@ import (
 type UserService interface {
 	GetAllUsers()       									  (*[]models.UserDB, error)
 	GetUserByID(id uint) 									  (*models.UserDB, error)
-	CreateUser(user *models.UserDB)           error
+	CreateUser(username string, pwd []byte)           error
+	LoginUser(user *models.LoginReq) error
 	UpdateUser(user *models.UserDB, id uint)   error
 	DeleteUser(id uint)                      error
 }
@@ -22,6 +23,8 @@ type UserServiceImpl struct {
 func NewUserService(repo repositories.UserRepo) *UserServiceImpl{
 	return &UserServiceImpl{repo: repo}
 }
+
+var _ UserService = (*UserServiceImpl)(nil)
 
 func (s UserServiceImpl) GetAllUsers() (*[]models.UserDB, error){
 	users, err := s.repo.GetAll()
@@ -39,19 +42,26 @@ func (s *UserServiceImpl) GetUserByID(id uint) (*models.UserDB, error) {
 	return user, nil
 }
 
-func (s *UserServiceImpl) CreateUser(user *models.UserDB) error{
+func (s *UserServiceImpl) CreateUser(username string, pwd []byte) error{
 	var userDB models.UserDB
-	hash, _ := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
-	userDB.Password = hash
-	return s.repo.Create(&userDB)
-}
-
-func (s *UserServiceImpl) LoginUser(user *models.UserDB) error {
-	userDB, err := s.repo.GetByID(user.ID)
+	hash, err := bcrypt.GenerateFromPassword(pwd, 12)
 	if err != nil {
 		return err
 	}
-	if err := bcrypt.CompareHashAndPassword(userDB.Password, []byte(user.Password)); err != nil {
+	for i := range pwd {
+		pwd[i] = 0
+	}
+	userDB.Username = username
+	userDB.PasswordHash = hash
+	return s.repo.Create(&userDB)
+}
+
+func (s *UserServiceImpl) LoginUser(user *models.LoginReq) error {
+	userDB, err := s.repo.GetByUsername(user.Username)
+	if err != nil {
+		return err
+	} 
+	if err := bcrypt.CompareHashAndPassword(userDB.PasswordHash, []byte(user.Password)); err != nil {
 		return err
 	}
 	return nil
