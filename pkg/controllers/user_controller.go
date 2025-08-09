@@ -3,7 +3,9 @@ package controllers
 import (
 	"ebookr/pkg/models"
 	"ebookr/pkg/services"
+	"ebookr/pkg/utils"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -48,12 +50,18 @@ func (ctrl *UserController) Login(c *gin.Context){
 		return
 	}
 
-
-	if err := ctrl.UserService.LoginUser(&user); err != nil {
+	claims, err := ctrl.UserService.LoginUser(&user)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "error", "error": err.Error()})
 		return
 	}
-	
+
+	token, err := utils.GenerateToken(claims, []byte(os.Getenv("JWT_SECRET")))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "error", "error": err.Error()})
+		return
+	}
+	c.SetCookie("Authorization", token, 86400, "/", "", false, true) 
 	c.JSON(http.StatusCreated, gin.H{"message": "Successful login", "error": nil})
 }
 

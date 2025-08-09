@@ -2,17 +2,21 @@ package routers
 
 import (
 	"ebookr/pkg/controllers"
+	"ebookr/pkg/middlewares"
+	"ebookr/pkg/repositories"
 
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterUserRoutes(group *gin.RouterGroup, ctrl *controllers.UserController){ // , jwt gin.HandlerFunc
+func RegisterUserRoutes(group *gin.RouterGroup, ctrl *controllers.UserController, repo repositories.UserRepo){
+	group.POST("/users/login", ctrl.Login)
+	group.POST("/users", ctrl.Create)
+	auth := group.Group("/")
+	auth.Use(middlewares.AuthMiddleware(repo))
 	{
-		group.GET("/users", ctrl.GetAll)
-		group.GET("/users/:id", ctrl.GetByID)
-		group.POST("/users", ctrl.Create)
-		group.POST("/users/login", ctrl.Login)
-		group.PUT("/users/:id", ctrl.Update)
-		group.DELETE("/users/:id", ctrl.Delete)
+		auth.GET("/users", ctrl.GetAll)
+		auth.GET("/users/:id", ctrl.GetByID)
+		auth.PUT("/users/:id", ctrl.Update)
+		auth.DELETE("/users/:id", ctrl.Delete)
 	}
 }

@@ -7,9 +7,11 @@ import (
 	"ebookr/pkg/routers"
 	"ebookr/pkg/services"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -24,14 +26,10 @@ type Config struct {
 			Port     int      `mapstructure:"PORT"`
 			Name     string   `mapstructure:"NAME"`
 			User     string   `mapstructure:"USER"`
-			Password string   `mapstructure:"PASSWORD"`
 			TimeZone   string   `mapstructure:"TIME_ZONE"`
 			SSLMode    string   `mapstructure:"SSL_Mode"`
 			DSN        string
 		}   									  `mapstructure:"db"`
-		// JWT struct {
-		// 	secretKey 	[]byte `mapstructure:"SECRET_KEY"`
-		// } `mapstructure:"jwt"`
 }
 type App struct {
 	router *gin.Engine
@@ -67,11 +65,14 @@ func NewConfig() (*Config, error) {
 
 func NewApp(cfg *Config) (*App, error) {
 	router := gin.Default()
+	err := godotenv.Load()
+	if err != nil{
+		return nil, err
+	}
 	v1 := router.Group("/api/v1")
-	// fmt.Printf("DB password: %v", cfg.DB.Password)
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s",
-		cfg.DB.Host, cfg.DB.User, cfg.DB.Password, cfg.DB.Name, cfg.DB.Port, cfg.DB.SSLMode, cfg.DB.TimeZone,
+		cfg.DB.Host, cfg.DB.User, os.Getenv("DB_PASSWORD"), cfg.DB.Name, cfg.DB.Port, cfg.DB.SSLMode, cfg.DB.TimeZone,
 	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
@@ -103,7 +104,7 @@ func NewApp(cfg *Config) (*App, error) {
 
 	routers.RegisterBookRoutes(v1, bookController)
 	routers.RegisterAuthorRoutes(v1, authorController)
-	routers.RegisterUserRoutes(v1, userController) // , middlewares.AuthMiddleware()
+	routers.RegisterUserRoutes(v1, userController, userRepo) // , middlewares.AuthMiddleware()
 	return &App{
 		router: router,
 		cfg:    cfg,

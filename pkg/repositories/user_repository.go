@@ -9,6 +9,7 @@ import (
 type UserRepo interface {
     Create(user *models.UserDB) error
     GetByID(id uint) (*models.UserDB, error)
+		IsExists(id uint) (error)
     GetAll() ([]models.UserDB, error)
     Update(user *models.UserDB, id uint) error
     Delete(id uint) error
@@ -44,6 +45,18 @@ func (r *GormUserRepo) GetByID(id uint) (*models.UserDB, error){
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *GormUserRepo) IsExists(id uint) (error) {
+	var user models.UserDB
+	result := r.db.First(&user, id)
+	if result.RowsAffected == 0 {
+    return gorm.ErrRecordNotFound
+  }
+	if err := result.Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *GormUserRepo) GetAll() ([]models.UserDB, error){

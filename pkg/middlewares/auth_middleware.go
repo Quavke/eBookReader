@@ -2,55 +2,48 @@ package middlewares
 
 import (
 	"ebookr/pkg/models"
+	"ebookr/pkg/repositories"
 	"fmt"
 	"net/http"
-	"strings"
+	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"gorm.io/gorm"
 )
 
-func AuthMiddleware(jwtSecretKey []byte) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == ""{
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "error", "error": "Authorization header is required"})
-			return
+func AuthMiddleware(repo repositories.UserRepo) gin.HandlerFunc {
+	return func (c *gin.Context) {
+		tokenString, err := c.Cookie("Authorization")
+		if err != nil {
+			c.AbortWithStatus(http.StatusUnauthorized)
 		}
-
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "error", "error": "Invalid authorization format. User 'Bearer token'"})
-			return
-		}
-
-		tokenStr := parts[1]
-
-		token, err := jwt.ParseWithClaims(tokenStr, &models.Claims{}, func(t *jwt.Token) (any, error) {
-			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+		claims := &models.Claims{}
+		token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (any, error) {
+			if t.Method != jwt.SigningMethodHS256 {
 				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 			}
-			return jwtSecretKey, nil
-		})
+			return []byte(os.Getenv("JWT_SECRET")), nil
+		}, jwt.WithValidMethods([]string{"HS256"}), jwt.WithIssuer("eBookReader"),)
 
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "error", "error": err.Error()})
+		if err != nil || !token.Valid {
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
-
-		if claims, ok := token.Claims.(*models.Claims); ok && token.Valid {
-			user := &models.User{
-				Model: gorm.Model{
-					ID: uint(claims.UserID),
-				},
-				Username: claims.Username,
+		
+		if _, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			if float64(time.Now().Unix()) > float64(claims.ExpiresAt.Unix()){
+				c.AbortWithStatus(http.StatusUnauthorized)
 			}
-
-			c.Set("user", user)
-			c.Next()
-		} else {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "error", "error": "Invalid token"})
+			if float64(time.Now().Unix()) < float64(claims.NotBefore.Unix()){
+				c.AbortWithStatus(http.StatusUnauthorized)
+			}
+			if err := repo.IsExists(uint(claims.UserID)); err != nil{
+				c.AbortWithStatus(http.StatusUnauthorized)
+			}
 		}
+
+		c.Set("claims", claims)
+		c.Next()
 	}
 }

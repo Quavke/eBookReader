@@ -2,27 +2,12 @@ package utils
 
 import (
 	"ebookr/pkg/models"
-	"fmt"
-	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GenerateToken(user *models.User, jwtSecretKey []byte) (string, error) {
-	expTime := time.Now().Add(24 * time.Hour)
-
-	claims := &models.Claims{
-		UserID: uint64(user.Model.ID),
-		Username: user.Username,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expTime),
-			IssuedAt: jwt.NewNumericDate(time.Now()),
-			Subject: fmt.Sprintf("%d", user.ID),
-			Issuer: "eBookReader",
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+func GenerateToken(claims *models.Claims, jwtSecretKey []byte) (string, error) {
+  token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	tokenStr, err := token.SignedString(jwtSecretKey)
 	if err != nil {

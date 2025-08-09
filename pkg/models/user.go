@@ -17,7 +17,7 @@ type UserDB struct {
 }
 
 type Claims struct {
-	UserID uint64 `json:"user_id"`
+	UserID uint `json:"user_id"`
 	Username string `json:"username"`
 	jwt.RegisteredClaims
 }
