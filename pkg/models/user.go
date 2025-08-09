@@ -16,11 +16,6 @@ type UserDB struct {
 	PasswordHash []byte `json:"-" gorm:"not null"`
 }
 
-type LoginReq struct {
-	Username string `json:"username" binding:"required,min=5"`
-	Password string `json:"password" binding:"required,min=8"`
-}
-
 type Claims struct {
 	UserID uint64 `json:"user_id"`
 	Username string `json:"username"`

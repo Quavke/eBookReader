@@ -11,7 +11,7 @@ type UserService interface {
 	GetAllUsers()       									  (*[]models.UserDB, error)
 	GetUserByID(id uint) 									  (*models.UserDB, error)
 	CreateUser(username string, pwd []byte)           error
-	LoginUser(user *models.LoginReq) error
+	LoginUser(user *models.RegisterReq) error
 	UpdateUser(user *models.UserDB, id uint)   error
 	DeleteUser(id uint)                      error
 }
@@ -56,7 +56,7 @@ func (s *UserServiceImpl) CreateUser(username string, pwd []byte) error{
 	return s.repo.Create(&userDB)
 }
 
-func (s *UserServiceImpl) LoginUser(user *models.LoginReq) error {
+func (s *UserServiceImpl) LoginUser(user *models.RegisterReq) error {
 	userDB, err := s.repo.GetByUsername(user.Username)
 	if err != nil {
 		return err
