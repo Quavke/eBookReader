@@ -19,7 +19,6 @@ type GormAuthorRepo struct {
 }
 
 var _ AuthorRepo = (*GormAuthorRepo)(nil)
-//TODO Добавить RowsAffected
 
 
 func NewGormAuthorRepo(db *gorm.DB) *GormAuthorRepo{
