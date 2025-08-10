@@ -47,7 +47,7 @@ func (r GormAuthorRepo) GetByID(id int) (*models.Author, error){
 
 func (r GormAuthorRepo) GetAll() ([]models.Author, error){
 	var authors []models.Author
-	result := r.db.Find(&authors)
+	result := r.db.Preload("Books").Find(&authors)
 	if result.RowsAffected == 0{
 		return nil, gorm.ErrRecordNotFound
 	}

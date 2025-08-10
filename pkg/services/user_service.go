@@ -15,7 +15,7 @@ type UserService interface {
 	GetUserByID(id uint) 									  (*models.UserDB, error)
 	CreateUser(username string, pwd []byte)           error
 	LoginUser(user *models.RegisterReq) (*models.Claims, error)
-	UpdateUser(user *models.UserDB, id uint)   error
+	UpdateUser(user *models.UpdateReq, id uint)   error
 	DeleteUser(id uint)                      error
 }
 
@@ -81,7 +81,7 @@ func (s *UserServiceImpl) LoginUser(user *models.RegisterReq) (*models.Claims, e
 	return claims, nil
 }
 
-func (s *UserServiceImpl) UpdateUser(user *models.UserDB, id uint) error{
+func (s *UserServiceImpl) UpdateUser(user *models.UpdateReq, id uint) error{
 	return s.repo.Update(user, id)
 }
 

@@ -10,6 +10,10 @@ type RegisterReq struct {
 	Password string `json:"password" binding:"required,min=8"`
 }
 
+type UpdateReq struct {
+	Username string `json:"username" binding:"required,min=5"`
+}
+
 type UserDB struct {
 	gorm.Model
 	Username string     `gorm:"type:varchar(64);not null;uniqueIndex:ux_users_username"`

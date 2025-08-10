@@ -11,7 +11,7 @@ type UserRepo interface {
     GetByID(id uint) (*models.UserDB, error)
 		IsExists(id uint) (error)
     GetAll() ([]models.UserDB, error)
-    Update(user *models.UserDB, id uint) error
+    Update(user *models.UpdateReq, id uint) error
     Delete(id uint) error
     GetByUsername(username string) (*models.UserDB, error)
 }
@@ -71,7 +71,7 @@ func (r *GormUserRepo) GetAll() ([]models.UserDB, error){
 	return user, nil
 }
 
-func (r *GormUserRepo) Update(user *models.UserDB, id uint) error{
+func (r *GormUserRepo) Update(user *models.UpdateReq, id uint) error{
 	return r.db.Transaction(func(tx *gorm.DB) error {
         var existing models.UserDB
         result := tx.First(&existing, id)
