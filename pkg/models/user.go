@@ -20,6 +20,9 @@ type UserDB struct {
 	PasswordHash []byte `json:"-" gorm:"not null"`
 }
 
+type UserResp struct {
+	Username string     `json:"username"`
+}
 type Claims struct {
 	UserID uint `json:"user_id"`
 	Username string `json:"username"`

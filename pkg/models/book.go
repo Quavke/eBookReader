@@ -10,3 +10,10 @@ type Book struct {
 	Content   string `json:"content" gorm:"not null;unique" binding:"required,min=50"`
 	AuthorID  uint `json:"author_id" gorm:"not null"`
 }
+
+type BookResp struct {
+  ID       uint   `json:"id"`
+  Title    string `json:"title"`
+  Content  string `json:"content"`
+  AuthorID uint   `json:"author_id"`
+}

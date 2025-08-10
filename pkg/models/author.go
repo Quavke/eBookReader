@@ -46,3 +46,10 @@ type Author struct {
 	Birthday  DateOnly  `json:"Birthday"  binding:"required" gorm:"type:date"`
 	Books     []Book    `gorm:"foreignKey:AuthorID"`
 }
+
+type AuthorResp struct {
+    ID        uint      `json:"id"`
+    Firstname string    `json:"firstname"`
+    Lastname  string    `json:"lastname"`
+    Birthday  DateOnly  `json:"birthday"`
+}

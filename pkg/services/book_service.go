@@ -6,8 +6,8 @@ import (
 )
 
 type BookService interface {
-	GetAllBooks()       									  (*[]models.Book, error)
-	GetBookByID(id int) 									  (*models.Book, error)
+	GetAllBooks()       									  (*[]models.BookResp, error)
+	GetBookByID(id int) 									  (*models.BookResp, error)
 	CreateBook(book *models.Book)           error
 	UpdateBook(book *models.Book, id int)   error
 	DeleteBook(id int)                      error
@@ -21,18 +21,33 @@ func NewBookService(repo repositories.BookRepo) *BookServiceImpl{
 	return &BookServiceImpl{repo: repo}
 }
 
-func (s *BookServiceImpl) GetAllBooks() (*[]models.Book, error){
-	books, err := s.repo.GetAll()
+func (s *BookServiceImpl) GetAllBooks() (*[]models.BookResp, error){
+	booksDB, err := s.repo.GetAll()
 	if err != nil {
 		return nil, err
+	}
+	books := make([]models.BookResp, 0, len(booksDB))
+	for _, b := range booksDB {
+		books = append(books, models.BookResp{
+			ID: b.ID,
+			Title: b.Title,
+			Content: b.Content,
+			AuthorID: b.AuthorID,
+		})
 	}
 	return &books, nil
 }
 
-func (s *BookServiceImpl) GetBookByID(id int) (*models.Book, error) {
-	book, err := s.repo.GetByID(id)
+func (s *BookServiceImpl) GetBookByID(id int) (*models.BookResp, error) {
+	bookDB, err := s.repo.GetByID(id)
 	if err != nil {
 		return nil, err
+	}
+	book := &models.BookResp{
+		ID: bookDB.ID,
+		Title: bookDB.Title,
+		Content: bookDB.Content,
+		AuthorID: bookDB.AuthorID,
 	}
 	return book, nil
 }
