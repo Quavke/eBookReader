@@ -27,12 +27,20 @@ func NewGormAuthorRepo(db *gorm.DB) *GormAuthorRepo{
 }
 
 func (r GormAuthorRepo) Create(author *models.Author) error{
-	return r.db.Create(&author).Error
+	result := r.db.Create(&author)
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return result.Error
 }
 
 func (r GormAuthorRepo) GetByID(id int) (*models.Author, error){
 	var author models.Author
-	if err := r.db.Preload("Books").First(&author, id).Error; err != nil{
+	result := r.db.Preload("Books").First(&author, id)
+	if result.RowsAffected == 0{
+		return nil, gorm.ErrRecordNotFound
+	}
+	if err := result.Error; err != nil{
 		return nil, err
 	}
 	return &author, nil
@@ -40,7 +48,11 @@ func (r GormAuthorRepo) GetByID(id int) (*models.Author, error){
 
 func (r GormAuthorRepo) GetAll() ([]models.Author, error){
 	var authors []models.Author
-	if err := r.db.Find(&authors).Error; err != nil{
+	result := r.db.Find(&authors)
+	if result.RowsAffected == 0{
+		return nil, gorm.ErrRecordNotFound
+	}
+	if err := result.Error; err != nil{
 		return nil, err
 	}
 	return authors, nil
@@ -49,7 +61,11 @@ func (r GormAuthorRepo) GetAll() ([]models.Author, error){
 func (r GormAuthorRepo) Update(author *models.Author, id int) error{
 	return r.db.Transaction(func(tx *gorm.DB) error {
         var existing models.Author
-        if err := tx.First(&existing, id).Error; err != nil {
+				result := tx.First(&existing, id)
+				if result.RowsAffected == 0{
+					return gorm.ErrRecordNotFound
+				}
+        if err := result.Error; err != nil {
             return err
         }
         
@@ -58,8 +74,11 @@ func (r GormAuthorRepo) Update(author *models.Author, id int) error{
 					Lastname: author.Lastname,
 					Birthday: author.Birthday,
         }
-        
-        return tx.Model(&existing).Updates(updates).Error
+        result = tx.Model(&existing).Updates(updates)
+				if result.RowsAffected == 0{
+					return gorm.ErrRecordNotFound
+				}
+        return result.Error
     })
 }
 
