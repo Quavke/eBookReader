@@ -19,6 +19,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 type Config struct {
+		IsProd bool `mapstructure:"IS_PROD"`
 		Server struct {
 			Port int      `mapstructure:"PORT"`
 		}											`mapstructure:"server"`
@@ -60,12 +61,19 @@ func NewConfig() (*Config, error) {
 	if cfg.DB.Host == "" || cfg.DB.User == "" || cfg.DB.Name == "" {
     return nil,fmt.Errorf("db host/user/name are required")
   }
+	if gin.Mode() == gin.ReleaseMode {
+		cfg.IsProd = true
+	}
 	return &cfg, nil
 }
 
 
 func NewApp(cfg *Config) (*App, error) {
 	router := gin.Default()
+	router.Use(func(c *gin.Context) {
+		c.Set("isProd", cfg.IsProd)
+		c.Next()
+	})
 	err := godotenv.Load()
 	if err != nil{
 		return nil, err
@@ -107,7 +115,7 @@ func NewApp(cfg *Config) (*App, error) {
 
 	routers.RegisterBookRoutes(v1, bookController, AuthMiddleware)
 	routers.RegisterAuthorRoutes(v1, authorController, AuthMiddleware)
-	routers.RegisterUserRoutes(v1, userController, AuthMiddleware) // , middlewares.AuthMiddleware()
+	routers.RegisterUserRoutes(v1, userController, AuthMiddleware)
 	return &App{
 		router: router,
 		cfg:    cfg,
