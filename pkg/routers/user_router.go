@@ -9,7 +9,7 @@ import (
 func RegisterUserRoutes(group *gin.RouterGroup, ctrl *controllers.UserController, AuthMiddleware gin.HandlerFunc){
 	group.POST("/users/login", ctrl.Login)
 	group.POST("/users", ctrl.Create)
-	group.POST("/users", ctrl.Logout)
+	group.POST("/users/logout", ctrl.Logout)
 	group.GET("/users", ctrl.GetAll)
 	group.GET("/users/:id", ctrl.GetByID)
 	auth := group.Group("/")
