@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -86,19 +85,6 @@ func (ctrl *UserController) Login(c *gin.Context){
 func (ctrl *UserController) Update(c *gin.Context){
 	claims := c.MustGet("claims").(*models.Claims)
 	var user models.UpdateReq
-	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "error", "error": "cannot create integer id"})
-    log.Printf("User controller Update error, cast id to int. Error: %s", err.Error())
-		return
-	}
-
-	if id != int(claims.UserID) {
-		c.JSON(http.StatusForbidden, gin.H{"message": "error", "error": "It is not you!"})
-    log.Println("User controller Update error, access denied, invalid ID")
-		return
-	}
 
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "error", "error": "something wrong with your request. You need to sent Username and Password"})
@@ -115,21 +101,8 @@ func (ctrl *UserController) Update(c *gin.Context){
 
 func (ctrl *UserController) Delete(c *gin.Context){
 	claims := c.MustGet("claims").(*models.Claims)
-	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "error", "error": "cannot create integer id"})
-    log.Printf("User controller Delete error, cast id to int. Error: %s", err.Error())
-		return
-	}
 
-	if id != int(claims.UserID) {
-		c.JSON(http.StatusForbidden, gin.H{"message": "error", "error": "It is not you!"})
-    log.Println("User controller Delete error, access denied, invalid ID")
-		return
-	}
-
-	if err := ctrl.UserService.DeleteUser(uint(id)); err != nil {
+	if err := ctrl.UserService.DeleteUser(claims.UserID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "error", "error": "cannot create integer id"})
     log.Printf("User controller Delete error, service method DeleteUser. Error: %s", err.Error())
 		return

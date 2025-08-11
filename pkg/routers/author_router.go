@@ -6,12 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterAuthorRoutes(group *gin.RouterGroup, ctrl *controllers.AuthorController) {
+func RegisterAuthorRoutes(group *gin.RouterGroup, ctrl *controllers.AuthorController, AuthMiddleware gin.HandlerFunc) {
+	group.GET("/authors", ctrl.GetAll)
+	group.GET("/authors/:id", ctrl.GetByID)
+	auth := group.Group("/")
+	auth.Use(AuthMiddleware)
 	{
-		group.GET("/authors", ctrl.GetAll)
-		group.GET("/authors/:id", ctrl.GetByID)
-		group.POST("/authors", ctrl.Create)
-		group.PUT("/authors/:id", ctrl.Update)
-		group.DELETE("/authors/:id", ctrl.Delete)
+		auth.POST("/authors", ctrl.Create)
+		auth.PUT("/authors/:id", ctrl.Update)
+		auth.DELETE("/authors/:id", ctrl.Delete)
 	}
 }

@@ -2,6 +2,7 @@ package config
 
 import (
 	"ebookr/pkg/controllers"
+	"ebookr/pkg/middlewares"
 	"ebookr/pkg/models"
 	"ebookr/pkg/repositories"
 	"ebookr/pkg/routers"
@@ -93,7 +94,7 @@ func NewApp(cfg *Config) (*App, error) {
 	bookRepo := repositories.NewGormBookRepo(db)
 	bookService := services.NewBookService(bookRepo)
 	bookController := controllers.NewBookController(bookService)
-
+	
 	authorRepo := repositories.NewGormAuthorRepo(db)
 	authorService := services.NewAuthorService(authorRepo)
 	authorController := controllers.NewAuthorController(authorService)
@@ -102,9 +103,11 @@ func NewApp(cfg *Config) (*App, error) {
 	userService := services.NewUserService(userRepo)
 	userController := controllers.NewUserController(userService)
 
-	routers.RegisterBookRoutes(v1, bookController)
-	routers.RegisterAuthorRoutes(v1, authorController)
-	routers.RegisterUserRoutes(v1, userController, userRepo) // , middlewares.AuthMiddleware()
+	AuthMiddleware := middlewares.AuthMiddleware(userRepo)
+
+	routers.RegisterBookRoutes(v1, bookController, AuthMiddleware)
+	routers.RegisterAuthorRoutes(v1, authorController, AuthMiddleware)
+	routers.RegisterUserRoutes(v1, userController, AuthMiddleware) // , middlewares.AuthMiddleware()
 	return &App{
 		router: router,
 		cfg:    cfg,
