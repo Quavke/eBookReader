@@ -48,12 +48,14 @@ func (ctrl *AuthorController) GetByID(c *gin.Context){
 func (ctrl *AuthorController) Create(c *gin.Context){
 	var author models.Author
 
+	user := c.MustGet("claims").(*models.Claims)
+
 	if err := c.ShouldBindBodyWithJSON(&author); err != nil {
     c.JSON(http.StatusBadRequest, models.APIResponse[any]{Message: "error", Error: "something wrong with your request. You need to sent Firstname, Lastname, Birthday(yyyy-mm-dd)"})
     log.Printf("Author controller Create error, bind. Error: %s", err.Error())
 		return
 	}
-
+	author.UserID = user.UserID
 	if err := ctrl.AuthorService.CreateAuthor(&author); err != nil {
     c.JSON(http.StatusBadRequest, models.APIResponse[any]{Message: "error", Error: "cannot create author"})
     log.Printf("Author controller Create error, service method CreateAuthor. Error: %s", err.Error())

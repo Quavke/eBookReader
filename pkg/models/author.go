@@ -40,17 +40,19 @@ func (d DateOnly) Value() (driver.Value, error) {
     return d.Time, nil
 }
 type Author struct {
-	gorm.Model
-    UserID    uint      `json:"-" gorm:"not null;uniqueIndex;constraint:OnDelete:CASCADE;"`
+    UserID    uint      `json:"-" gorm:"primaryKey;not null;uniqueIndex;constraint:OnDelete:CASCADE;"`
     User      *UserDB   `json:"-" gorm:"foreignKey:UserID;references:ID"`
 	Firstname string    `json:"Firstname" binding:"required"`
 	Lastname  string    `json:"Lastname"  binding:"required"`
 	Birthday  DateOnly  `json:"Birthday"  binding:"required" gorm:"type:date"`
 	Books     []Book    `gorm:"foreignKey:AuthorID"`
+    CreatedAt time.Time
+    UpdatedAt time.Time
+    DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
 type AuthorResp struct {
-    ID        uint      `json:"id"`
+    UserID    uint      `json:"user_id"`
     Firstname string    `json:"firstname"`
     Lastname  string    `json:"lastname"`
     Birthday  DateOnly  `json:"birthday"`

@@ -29,7 +29,10 @@ func (s *AuthorServiceImpl) GetAllAuthors() (*[]models.AuthorResp, error){
 	authors := make([]models.AuthorResp, 0, len(authorsDB))
 	for _, a := range authorsDB {
 		authors = append(authors, models.AuthorResp{
-			ID: a.ID, Firstname: a.Firstname, Lastname: a.Lastname, Birthday: a.Birthday,
+			UserID: a.UserID,
+			Firstname: a.Firstname,
+			Lastname: a.Lastname,
+			Birthday: a.Birthday,
 		})
 	}
 	return &authors, nil
@@ -41,7 +44,7 @@ func (s *AuthorServiceImpl) GetAuthorByID(id int) (*models.AuthorResp, error){
 		return nil, err
 	}
 	author := &models.AuthorResp{
-		ID: authorBD.ID,
+		UserID: authorBD.UserID,
 		Firstname: authorBD.Firstname,
 		Lastname: authorBD.Lastname,
 		Birthday: authorBD.Birthday,

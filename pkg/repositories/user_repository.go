@@ -40,7 +40,7 @@ func (r *GormUserRepo) Create(user *models.UserDB) error{
 
 func (r *GormUserRepo) GetByID(id uint) (*models.UserDB, error){
 	var user models.UserDB
-	result := r.db.Where("id = ?", id).First(&user)
+	result := r.db.Where("user_id = ?", id).First(&user)
 	if result.RowsAffected == 0 {
     return nil, gorm.ErrRecordNotFound
   }
@@ -52,7 +52,7 @@ func (r *GormUserRepo) GetByID(id uint) (*models.UserDB, error){
 
 func (r *GormUserRepo) IsExists(id uint) (error) {
 	var user models.UserDB
-	result := r.db.Where("id = ?", id).First(&user)
+	result := r.db.Where("user_id = ?", id).First(&user)
 	if result.RowsAffected == 0 {
     return gorm.ErrRecordNotFound
   }
@@ -108,7 +108,7 @@ func (r *GormUserRepo) GetAll() ([]models.UserDB, error){
 func (r *GormUserRepo) Update(user *models.UpdateReq, id uint) error{
 	return r.db.Transaction(func(tx *gorm.DB) error {
         var existing models.UserDB
-        result := tx.First(&existing, id)
+        result := tx.Where("user_id = ?", id).First(&existing)
         if result.RowsAffected == 0 {
             return gorm.ErrRecordNotFound
         }
@@ -131,8 +131,8 @@ func (r *GormUserRepo) Delete(id uint) error{
 	var user models.UserDB
 	result := r.db.Delete(&user, id)
 	if result.RowsAffected == 0 {
-        return gorm.ErrRecordNotFound
-    }
+    return gorm.ErrRecordNotFound
+  }
 	return result.Error
 }
 
