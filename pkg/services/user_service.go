@@ -34,12 +34,23 @@ func (s UserServiceImpl) GetAllUsers() (*[]models.UserResp, error){
 	if err != nil {
 		return nil, err
 	}
-	users := make([]models.UserResp, 0, len(usersDB))
-	for _, u := range usersDB {
-		users = append(users, models.UserResp{
-			Username: u.Username,
-		})
-	}
+    users := make([]models.UserResp, 0, len(usersDB))
+
+    ids := make([]uint, 0, len(usersDB))
+    for _, u := range usersDB {
+        ids = append(ids, u.ID)
+    }
+
+    isAuthor, err := s.repo.IsAuthors(ids)
+    if err != nil {
+        return nil, err
+    }
+    for _, u := range usersDB {
+        users = append(users, models.UserResp{
+            Username: u.Username,
+            IsAuthor: isAuthor[u.ID],
+        })
+    }
 	return &users, nil
 }
 
@@ -48,8 +59,14 @@ func (s *UserServiceImpl) GetUserByID(id uint) (*models.UserResp, error) {
 	if err != nil {
 		return nil, err
 	}
+	isAuthor, err := s.repo.IsAuthor(userDB.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	user := &models.UserResp{
 		Username: userDB.Username,
+		IsAuthor: isAuthor,
 	}
 	return user, nil
 }
