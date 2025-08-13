@@ -48,11 +48,15 @@ func (ctrl *BookController) GetByID(c *gin.Context){
 func (ctrl *BookController) Create(c *gin.Context){
 	var book models.Book
 
-	if err := c.ShouldBindBodyWithJSON(&book); err != nil {
-    c.JSON(http.StatusBadRequest, models.APIResponse[any]{Message: "error", Error: "something wrong with your request. You need to sent Title(min 3 chars), Content(min 50 chars), Author"})
+	claims := c.MustGet("claims").(*models.Claims)
+
+	if err := c.ShouldBindJSON(&book); err != nil {
+    c.JSON(http.StatusBadRequest, models.APIResponse[any]{Message: "error", Error: "something wrong with your request. You need to sent Title(min 3 chars), Content(min 50 chars)"})
     log.Printf("Book controller Create error, bind. Error: %s", err.Error())
 		return
 	}
+
+	book.AuthorID = claims.UserID
 
 	if err := ctrl.BookService.CreateBook(&book); err != nil {
     c.JSON(http.StatusBadRequest, models.APIResponse[any]{Message: "error", Error: "cannot create book"})
@@ -73,8 +77,8 @@ func (ctrl *BookController) Update(c *gin.Context){
 		return
 	}
 
-	if err := c.ShouldBindBodyWithJSON(&book); err != nil {
-    c.JSON(http.StatusBadRequest, models.APIResponse[any]{Message: "error", Error: "something wrong with your request. You need to sent Title(min 3 chars), Content(min 50 chars), Author"})
+	if err := c.ShouldBindJSON(&book); err != nil {
+    c.JSON(http.StatusBadRequest, models.APIResponse[any]{Message: "error", Error: "something wrong with your request. You need to sent Title(min 3 chars), Content(min 50 chars)"})
     log.Printf("Book controller Update error, bind. Error: %s", err.Error())
 		return
 	}

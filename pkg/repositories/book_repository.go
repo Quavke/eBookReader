@@ -26,7 +26,7 @@ func NewGormBookRepo(db *gorm.DB) *GormBookRepo{
 
 func (r *GormBookRepo) Create(book *models.Book) error{
     var author models.Author
-    err := r.db.First(&author, book.AuthorID).Error
+    err := r.db.Where("user_id = ?", book.AuthorID).First(&author).Error
     if err != nil {
         return err
     }
@@ -39,7 +39,7 @@ func (r *GormBookRepo) Create(book *models.Book) error{
 
 func (r *GormBookRepo) GetByID(id int) (*models.Book, error) {
 	var book models.Book
-    result := r.db.First(&book, id)
+    result := r.db.Where("id = ?", id).First(&book)
     if result.RowsAffected == 0 {
         return nil, gorm.ErrRecordNotFound
     }
@@ -66,7 +66,7 @@ func (r *GormBookRepo) GetAll() ([]models.Book, error){
 func (r *GormBookRepo) Update(book *models.Book, id int) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
         var existing models.Book
-        result := tx.First(&existing, id)
+        result := tx.Where("id = ?", id).First(&existing)
         if result.RowsAffected == 0 {
             return gorm.ErrRecordNotFound
         }
@@ -88,7 +88,7 @@ func (r *GormBookRepo) Update(book *models.Book, id int) error {
 
 func (r *GormBookRepo) Delete(id int) error{
 	var book models.Book
-	result := r.db.Delete(&book, id)
+	result := r.db.Where("id = ?", id).Delete(&book)
 	if result.RowsAffected == 0 {
         return gorm.ErrRecordNotFound
     }

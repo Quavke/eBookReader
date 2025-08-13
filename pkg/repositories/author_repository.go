@@ -35,7 +35,7 @@ func (r GormAuthorRepo) Create(author *models.Author) error{
 
 func (r GormAuthorRepo) GetByID(id int) (*models.Author, error){
 	var author models.Author
-	result := r.db.Preload("Books").First(&author, id)
+	result := r.db.Preload("Books").Where("user_id = ?", id).First(&author)
 	if result.RowsAffected == 0{
 		return nil, gorm.ErrRecordNotFound
 	}
@@ -60,7 +60,7 @@ func (r GormAuthorRepo) GetAll() ([]models.Author, error){
 func (r GormAuthorRepo) Update(author *models.Author, id int) error{
 	return r.db.Transaction(func(tx *gorm.DB) error {
         var existing models.Author
-				result := tx.First(&existing, id)
+				result := tx.Where("user_id = ?", id).First(&existing)
 				if result.RowsAffected == 0{
 					return gorm.ErrRecordNotFound
 				}
@@ -82,8 +82,8 @@ func (r GormAuthorRepo) Update(author *models.Author, id int) error{
 }
 
 func (r GormAuthorRepo) Delete(id int) error{
-	var author models.Author
-	result := r.db.Delete(&author, id)
+	author := models.Author{UserID: uint(id)}
+	result := r.db.Select("Books").Delete(&author)
 	if result.RowsAffected == 0 {
     return gorm.ErrRecordNotFound
   }

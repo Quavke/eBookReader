@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -85,17 +84,8 @@ func (ctrl *UserController) Login(c *gin.Context){
 
 func (ctrl *UserController) Logout(c *gin.Context){
 	isProd := c.MustGet("isProd").(bool)
-	http.SetCookie(c.Writer, &http.Cookie{
-    Name:     "Authorization",
-    Value:    "",
-    Path:     "/",
-    Domain:   "",                 // укажите, если задавали при логине
-    MaxAge:   -1,                 // ключ для удаления
-    Expires:  time.Unix(0, 0),    // на всякий случай
-    HttpOnly: true,
-    Secure:   isProd,             // true в проде
-    SameSite: http.SameSiteStrictMode,
-  })
+	c.SetCookie("Authorization", "", -1, "/", "", isProd, true)
+
 	c.Status(http.StatusNoContent)
 }
 
@@ -118,11 +108,12 @@ func (ctrl *UserController) Update(c *gin.Context){
 
 func (ctrl *UserController) Delete(c *gin.Context){
 	claims := c.MustGet("claims").(*models.Claims)
-
+	isProd := c.MustGet("isProd").(bool)
 	if err := ctrl.UserService.DeleteUser(claims.UserID); err != nil {
     c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot create integer id"})
     log.Printf("User controller Delete error, service method DeleteUser. Error: %s", err.Error())
 		return
 	}
+	c.SetCookie("Authorization", "", -1, "/", "", isProd, true)
 	c.Status(http.StatusNoContent)
 }

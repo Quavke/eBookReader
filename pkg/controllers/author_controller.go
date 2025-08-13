@@ -63,7 +63,7 @@ func (ctrl *AuthorController) Create(c *gin.Context){
 	}
   c.JSON(http.StatusOK, models.APIResponse[any]{Message: "successful create"})
 }
-
+// TODO Delete и Update проверка на то, что пользователь владеет данными
 func (ctrl *AuthorController) Update(c *gin.Context){
 	var author models.Author
 

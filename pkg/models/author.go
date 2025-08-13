@@ -40,7 +40,7 @@ func (d DateOnly) Value() (driver.Value, error) {
     return d.Time, nil
 }
 type Author struct {
-    UserID    uint      `json:"-" gorm:"primaryKey;not null;uniqueIndex;constraint:OnDelete:CASCADE;"`
+    UserID    uint      `json:"-" gorm:"primaryKey;not null;constraint:OnDelete:CASCADE;"`
     User      *UserDB   `json:"-" gorm:"foreignKey:UserID;references:ID"`
 	Firstname string    `json:"Firstname" binding:"required"`
 	Lastname  string    `json:"Lastname"  binding:"required"`
