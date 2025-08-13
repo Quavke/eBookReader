@@ -128,14 +128,20 @@ func (r *GormUserRepo) Update(user *models.UpdateReq, id uint) error{
 }
 
 func (r *GormUserRepo) Delete(id uint) error{
-    var user models.UserDB
-    user.ID = id
-    
-    result := r.db.Select("Author", "Author.Books").Delete(&user)
-    if result.RowsAffected == 0 {
-    	return gorm.ErrRecordNotFound
-    }
-    return result.Error
+    return r.db.Transaction(func(tx *gorm.DB) error {
+        author := models.Author{UserID: id}
+        if err := tx.Select("Books").Delete(&author).Error; err != nil && err != gorm.ErrRecordNotFound {
+            return err
+        }
+
+        var user models.UserDB
+        user.ID = id
+        result := tx.Delete(&user)
+        if result.RowsAffected == 0 {
+            return gorm.ErrRecordNotFound
+        }
+        return result.Error
+    })
 }
 
 func (r *GormUserRepo) GetByUsername(username string) (*models.UserDB, error) {
