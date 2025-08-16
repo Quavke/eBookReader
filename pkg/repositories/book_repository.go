@@ -10,6 +10,7 @@ type BookRepo interface {
     Create(book *models.Book) error
     GetByID(id int) (*models.Book, error)
     GetAll() ([]models.Book, error)
+    IsBelongsTo(bookID int, authorID uint) (bool, error)
     Update(book *models.Book, id int) error
     Delete(id int) error
 }
@@ -49,7 +50,17 @@ func (r *GormBookRepo) GetByID(id int) (*models.Book, error) {
 	return &book, nil
 }
 
-
+func (r *GormBookRepo) IsBelongsTo(bookID int, authorID uint) (bool, error){
+    var book models.Book
+    result := r.db.Where("id = ? AND author_id = ?", bookID, authorID).First(&book)
+    if result.RowsAffected == 0 {
+        return false, gorm.ErrRecordNotFound
+    }
+    if err := result.Error; err != nil {
+        return false, err
+    }
+    return true, nil
+}
 
 func (r *GormBookRepo) GetAll() ([]models.Book, error){
 	var book []models.Book

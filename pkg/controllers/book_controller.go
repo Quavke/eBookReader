@@ -69,6 +69,8 @@ func (ctrl *BookController) Create(c *gin.Context){
 func (ctrl *BookController) Update(c *gin.Context){
 	var book models.Book
 
+	claims := c.MustGet("claims").(*models.Claims)
+
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -77,13 +79,14 @@ func (ctrl *BookController) Update(c *gin.Context){
 		return
 	}
 
+
 	if err := c.ShouldBindJSON(&book); err != nil {
     c.JSON(http.StatusBadRequest, models.APIResponse[any]{Message: "error", Error: "something wrong with your request. You need to sent Title(min 3 chars), Content(min 50 chars)"})
     log.Printf("Book controller Update error, bind. Error: %s", err.Error())
 		return
 	}
-	if err := ctrl.BookService.UpdateBook(&book, id); err != nil {
-     c.JSON(http.StatusBadRequest, models.APIResponse[any]{Message: "error", Error: "cannot update book"})
+	if err := ctrl.BookService.UpdateBook(&book, id, claims.UserID); err != nil {
+    c.JSON(http.StatusBadRequest, models.APIResponse[any]{Message: "error", Error: "cannot update book"})
     log.Printf("Book controller Update error, service method UpdateBook. Error: %s", err.Error())
 		return
 	}
@@ -99,7 +102,9 @@ func (ctrl *BookController) Delete(c *gin.Context){
 		return
 	}
 
-	if err := ctrl.BookService.DeleteBook(id); err != nil {
+	claims := c.MustGet("claims").(*models.Claims)
+
+	if err := ctrl.BookService.DeleteBook(id, claims.UserID); err != nil {
     c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot delete book by this id"})
     log.Printf("Book controller Delete error, service method DeleteBook. Error: %s", err.Error())
 		return

@@ -13,7 +13,7 @@ func RegisterAuthorRoutes(group *gin.RouterGroup, ctrl *controllers.AuthorContro
 	auth.Use(AuthMiddleware)
 	{
 		auth.POST("/authors", ctrl.Create)
-		auth.PUT("/authors/:id", ctrl.Update)
-		auth.DELETE("/authors/:id", ctrl.Delete)
+		auth.PUT("/authors/me", ctrl.Update)
+		auth.DELETE("/authors/me", ctrl.Delete)
 	}
 }

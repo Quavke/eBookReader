@@ -36,7 +36,7 @@ func (ctrl *AuthorController) GetByID(c *gin.Context){
     log.Printf("Author controller GetByID error, cast id to int. Error: %s", err.Error())
 		return
 	}
-	author, err := ctrl.AuthorService.GetAuthorByID(id)
+	author, err := ctrl.AuthorService.GetAuthorByID(uint(id))
 	if err != nil {
     c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot get author by this id"})
     log.Printf("Author controller GetByID error, service method GetAuthorByID. Error: %s", err.Error())
@@ -66,21 +66,16 @@ func (ctrl *AuthorController) Create(c *gin.Context){
 // TODO Delete и Update проверка на то, что пользователь владеет данными
 func (ctrl *AuthorController) Update(c *gin.Context){
 	var author models.Author
+	
+	claims := c.MustGet("claims").(*models.Claims)
 
-	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-    c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot create integer id"})
-    log.Printf("Author controller Update error, cast id to int. Error: %s", err.Error())
-		return
-	}
 
 	if err := c.ShouldBindBodyWithJSON(&author); err != nil {
     c.JSON(http.StatusBadRequest, models.APIResponse[any]{Message: "error", Error: "something wrong with your request. You need to sent Firstname, Lastname, Birthday(yyyy-mm-dd)"})
     log.Printf("Author controller Update error, bind. Error: %s", err.Error())
 		return
 	}
-	if err := ctrl.AuthorService.UpdateAuthor(&author, id); err != nil {
+	if err := ctrl.AuthorService.UpdateAuthor(&author, claims.UserID); err != nil {
     c.JSON(http.StatusBadRequest, models.APIResponse[any]{Message: "error", Error: "cannot update author"})
     log.Printf("Author controller Update error, service method UpdateAuthor. Error: %s", err.Error())
 		return
@@ -89,15 +84,9 @@ func (ctrl *AuthorController) Update(c *gin.Context){
 }
 
 func (ctrl *AuthorController) Delete(c *gin.Context){
-	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-    c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "can't cast id to integer"})
-    log.Printf("Author controller Delete error, cast id to int. Error: %s", err.Error())
-		return
-	}
+	claims := c.MustGet("claims").(*models.Claims)
 
-	if err := ctrl.AuthorService.DeleteAuthor(id); err != nil {
+	if err := ctrl.AuthorService.DeleteAuthor(claims.UserID); err != nil {
     c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "can't delete author by this id"})
     log.Printf("Author controller Delete error, service method DeleteAuthor. Error: %s", err.Error())
 		return

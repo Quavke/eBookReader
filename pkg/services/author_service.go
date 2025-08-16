@@ -7,10 +7,10 @@ import (
 
 type AuthorService interface {
 	GetAllAuthors()       									     (*[]models.AuthorResp, error)
-	GetAuthorByID(id int) 									     (*models.AuthorResp, error)
+	GetAuthorByID(id uint) 									     (*models.AuthorResp, error)
 	CreateAuthor(author *models.Author)          error
-	UpdateAuthor(author *models.Author, id int)  error
-	DeleteAuthor(id int)                         error
+	UpdateAuthor(author *models.Author, id uint)  error
+	DeleteAuthor(id uint)                         error
 }
 
 type AuthorServiceImpl struct {
@@ -38,7 +38,7 @@ func (s *AuthorServiceImpl) GetAllAuthors() (*[]models.AuthorResp, error){
 	return &authors, nil
 }
 
-func (s *AuthorServiceImpl) GetAuthorByID(id int) (*models.AuthorResp, error){
+func (s *AuthorServiceImpl) GetAuthorByID(id uint) (*models.AuthorResp, error){
 	authorBD, err := s.repo.GetByID(id)
 	if err != nil {
 		return nil, err
@@ -56,10 +56,10 @@ func (s *AuthorServiceImpl) CreateAuthor(author *models.Author) error{
 	return s.repo.Create(author)
 }
 
-func (s *AuthorServiceImpl) UpdateAuthor(author *models.Author, id int) error{
+func (s *AuthorServiceImpl) UpdateAuthor(author *models.Author, id uint) error{
 	return s.repo.Update(author, id)
 }
 
-func (s *AuthorServiceImpl) DeleteAuthor(id int) error{
+func (s *AuthorServiceImpl) DeleteAuthor(id uint) error{
 	return s.repo.Delete(id)
 }

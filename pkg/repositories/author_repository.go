@@ -8,10 +8,10 @@ import (
 
 type AuthorRepo interface {
     Create(author *models.Author) error
-    GetByID(id int) (*models.Author, error)
+    GetByID(id uint) (*models.Author, error)
     GetAll() ([]models.Author, error)
-    Update(author *models.Author, id int) error
-    Delete(id int) error
+    Update(author *models.Author, id uint) error
+    Delete(id uint) error
 }
 
 type GormAuthorRepo struct {
@@ -33,7 +33,7 @@ func (r GormAuthorRepo) Create(author *models.Author) error{
 	return result.Error
 }
 
-func (r GormAuthorRepo) GetByID(id int) (*models.Author, error){
+func (r GormAuthorRepo) GetByID(id uint) (*models.Author, error){
 	var author models.Author
 	result := r.db.Preload("Books").Where("user_id = ?", id).First(&author)
 	if result.RowsAffected == 0{
@@ -57,7 +57,7 @@ func (r GormAuthorRepo) GetAll() ([]models.Author, error){
 	return authors, nil
 }
 
-func (r GormAuthorRepo) Update(author *models.Author, id int) error{
+func (r GormAuthorRepo) Update(author *models.Author, id uint) error{
 	return r.db.Transaction(func(tx *gorm.DB) error {
         var existing models.Author
 				result := tx.Where("user_id = ?", id).First(&existing)
@@ -81,7 +81,7 @@ func (r GormAuthorRepo) Update(author *models.Author, id int) error{
     })
 }
 
-func (r GormAuthorRepo) Delete(id int) error{
+func (r GormAuthorRepo) Delete(id uint) error{
 	author := models.Author{UserID: uint(id)}
 	result := r.db.Select("Books").Delete(&author)
 	if result.RowsAffected == 0 {

@@ -7,10 +7,10 @@ import (
 
 type BookService interface {
 	GetAllBooks()       									  (*[]models.BookResp, error)
-	GetBookByID(id int) 									  (*models.BookResp, error)
+	GetBookByID(bookID int) 									  (*models.BookResp, error)
 	CreateBook(book *models.Book)           error
-	UpdateBook(book *models.Book, id int)   error
-	DeleteBook(id int)                      error
+	UpdateBook(book *models.Book, bookID int, userID uint)   error
+	DeleteBook(bookID int, userID uint)                      error
 }
 
 type BookServiceImpl struct {
@@ -38,8 +38,8 @@ func (s *BookServiceImpl) GetAllBooks() (*[]models.BookResp, error){
 	return &books, nil
 }
 
-func (s *BookServiceImpl) GetBookByID(id int) (*models.BookResp, error) {
-	bookDB, err := s.repo.GetByID(id)
+func (s *BookServiceImpl) GetBookByID(bookID int) (*models.BookResp, error) {
+	bookDB, err := s.repo.GetByID(bookID)
 	if err != nil {
 		return nil, err
 	}
@@ -56,10 +56,18 @@ func (s *BookServiceImpl) CreateBook(book *models.Book) error{
 	return s.repo.Create(book)
 }
 
-func (s *BookServiceImpl) UpdateBook(book *models.Book, id int) error {
-	return s.repo.Update(book, id)
+func (s *BookServiceImpl) UpdateBook(book *models.Book, bookID int, userID uint) error {
+	result, err := s.repo.IsBelongsTo(bookID, userID)
+	if err != nil && !result{
+		return err
+	}
+	return s.repo.Update(book, bookID)
 }
 
-func (s *BookServiceImpl) DeleteBook(id int) error {
-	return s.repo.Delete(id)
+func (s *BookServiceImpl) DeleteBook(bookID int, userID uint) error {
+	result, err := s.repo.IsBelongsTo(bookID, userID)
+	if err != nil && !result{
+		return err
+	}
+	return s.repo.Delete(bookID)
 }
