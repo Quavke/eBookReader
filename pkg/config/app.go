@@ -112,8 +112,9 @@ func NewApp(cfg *Config) (*App, error) {
 	userController := controllers.NewUserController(userService)
 
 	AuthMiddleware := middlewares.AuthMiddleware(userRepo)
+	BooksMiddleware := middlewares.BooksMiddleware(userRepo)
 
-	routers.RegisterBookRoutes(v1, bookController, AuthMiddleware)
+	routers.RegisterBookRoutes(v1, bookController, AuthMiddleware, BooksMiddleware)
 	routers.RegisterAuthorRoutes(v1, authorController, AuthMiddleware)
 	routers.RegisterUserRoutes(v1, userController, AuthMiddleware)
 	return &App{

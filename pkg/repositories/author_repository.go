@@ -10,7 +10,7 @@ type AuthorRepo interface {
     Create(author *models.Author) error
     GetByID(id uint) (*models.Author, error)
     GetAll() ([]models.Author, error)
-    Update(author *models.Author, id uint) error
+    Update(author *models.AuthorUpdate, id uint) error
     Delete(id uint) error
 }
 
@@ -57,7 +57,7 @@ func (r GormAuthorRepo) GetAll() ([]models.Author, error){
 	return authors, nil
 }
 
-func (r GormAuthorRepo) Update(author *models.Author, id uint) error{
+func (r GormAuthorRepo) Update(author *models.AuthorUpdate, id uint) error{
 	return r.db.Transaction(func(tx *gorm.DB) error {
         var existing models.Author
 				result := tx.Where("user_id = ?", id).First(&existing)
@@ -67,13 +67,22 @@ func (r GormAuthorRepo) Update(author *models.Author, id uint) error{
         if err := result.Error; err != nil {
             return err
         }
-        
-        updates := models.Author{
-					Firstname: author.Firstname,
-					Lastname: author.Lastname,
-					Birthday: author.Birthday,
+
+				
+        updates := make(map[string]interface{})
+        if author.Firstname != "" && author.Firstname != existing.Firstname {
+            updates["firstname"] = author.Firstname
         }
-        result = tx.Model(&existing).Updates(updates)
+        if author.Lastname != "" && author.Lastname != existing.Lastname {
+            updates["lastname"] = author.Lastname
+        }
+        if !author.Birthday.IsZero() && !author.Birthday.Equal(existing.Birthday.Time) {
+            updates["birthday"] = author.Birthday
+        }
+        
+        if len(updates) > 0 {
+            return tx.Model(&existing).Updates(updates).Error
+        }
 				if result.RowsAffected == 0{
 					return gorm.ErrRecordNotFound
 				}

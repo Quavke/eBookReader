@@ -9,7 +9,7 @@ type AuthorService interface {
 	GetAllAuthors()       									     (*[]models.AuthorResp, error)
 	GetAuthorByID(id uint) 									     (*models.AuthorResp, error)
 	CreateAuthor(author *models.Author)          error
-	UpdateAuthor(author *models.Author, id uint)  error
+	UpdateAuthor(author *models.AuthorUpdate, id uint)  error
 	DeleteAuthor(id uint)                         error
 }
 
@@ -56,7 +56,31 @@ func (s *AuthorServiceImpl) CreateAuthor(author *models.Author) error{
 	return s.repo.Create(author)
 }
 
-func (s *AuthorServiceImpl) UpdateAuthor(author *models.Author, id uint) error{
+func (s *AuthorServiceImpl) UpdateAuthor(author *models.AuthorUpdate, id uint) error{
+	if author.Firstname == "" && author.Lastname == "" && author.Birthday.IsZero() {
+		return nil
+	}
+
+	// existing, err := s.repo.GetByID(id)
+  //   if err != nil {
+  //       return err
+  //   }
+    
+  //   hasChanges := false
+  //   if author.Firstname != "" && author.Firstname != existing.Firstname {
+  //       hasChanges = true
+  //   }
+  //   if author.Lastname != "" && author.Lastname != existing.Lastname {
+  //       hasChanges = true
+  //   }
+  //   if !author.Birthday.IsZero() && !author.Birthday.Equal(existing.Birthday.Time) {
+  //       hasChanges = true
+  //   }
+    
+  //   if !hasChanges {
+  //       return nil // ничего не обновляем
+  //   }
+	
 	return s.repo.Update(author, id)
 }
 

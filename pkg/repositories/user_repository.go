@@ -10,8 +10,8 @@ import (
 type UserRepo interface {
     Create(user *models.UserDB) error
     GetByID(id uint) (*models.UserDB, error)
-		IsExists(id uint) error
-		IsAuthor(id uint) (bool, error)
+	IsExists(id uint) error
+	IsAuthor(id uint) (bool, error)
     IsAuthors(ids []uint) (map[uint]bool, error)
     GetAll() ([]models.UserDB, error)
     Update(user *models.UpdateReq, id uint) error
@@ -34,7 +34,7 @@ func (r *GormUserRepo) Create(user *models.UserDB) error{
 	result := r.db.Create(user)
 	if result.RowsAffected == 0 {
     return gorm.ErrRecordNotFound
-  }
+    }
 	return result.Error
 }
 
@@ -43,7 +43,7 @@ func (r *GormUserRepo) GetByID(id uint) (*models.UserDB, error){
 	result := r.db.Where("id = ?", id).First(&user)
 	if result.RowsAffected == 0 {
     return nil, gorm.ErrRecordNotFound
-  }
+    }
 	if err := result.Error; err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (r *GormUserRepo) IsExists(id uint) (error) {
 	result := r.db.Where("id = ?", id).First(&user)
 	if result.RowsAffected == 0 {
     return gorm.ErrRecordNotFound
-  }
+    }
 	if err := result.Error; err != nil {
 		return err
 	}
@@ -67,7 +67,7 @@ func (r *GormUserRepo) IsAuthor(id uint) (bool, error) {
 	result := r.db.Where("user_id = ?", id).First(&author)
 	if result.RowsAffected == 0 {
     return false, gorm.ErrRecordNotFound
-  }
+    }
 	if err := result.Error; err != nil {
 		return false, err
 	}

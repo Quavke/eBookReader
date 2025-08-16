@@ -65,16 +65,24 @@ func (ctrl *AuthorController) Create(c *gin.Context){
 }
 // TODO Delete и Update проверка на то, что пользователь владеет данными
 func (ctrl *AuthorController) Update(c *gin.Context){
-	var author models.Author
+	var author models.AuthorUpdate
 	
 	claims := c.MustGet("claims").(*models.Claims)
 
 
 	if err := c.ShouldBindBodyWithJSON(&author); err != nil {
-    c.JSON(http.StatusBadRequest, models.APIResponse[any]{Message: "error", Error: "something wrong with your request. You need to sent Firstname, Lastname, Birthday(yyyy-mm-dd)"})
+    c.JSON(http.StatusBadRequest, models.APIResponse[any]{Message: "error", Error: "something wrong with your request. You need to sent Firstname or Lastname or Birthday(yyyy-mm-dd)"})
     log.Printf("Author controller Update error, bind. Error: %s", err.Error())
 		return
 	}
+
+	if author.Firstname == "" && author.Lastname == "" && author.Birthday.IsZero() {
+		c.JSON(http.StatusOK, models.APIResponse[any]{
+				Message: "successful update", 
+				Data: "No fields to update"})
+		return
+	}
+
 	if err := ctrl.AuthorService.UpdateAuthor(&author, claims.UserID); err != nil {
     c.JSON(http.StatusBadRequest, models.APIResponse[any]{Message: "error", Error: "cannot update author"})
     log.Printf("Author controller Update error, service method UpdateAuthor. Error: %s", err.Error())
