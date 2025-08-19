@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"ebookr/pkg/models"
+	"github.com/Quavke/eBookReader/pkg/models"
 
 	"gorm.io/gorm"
 )
@@ -19,7 +19,6 @@ type GormAuthorRepo struct {
 }
 
 var _ AuthorRepo = (*GormAuthorRepo)(nil)
-
 
 func NewGormAuthorRepo(db *gorm.DB) *GormAuthorRepo{
 	return &GormAuthorRepo{db: db}

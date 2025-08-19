@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"ebookr/pkg/models"
-	"ebookr/pkg/services"
+	"github.com/Quavke/eBookReader/pkg/models"
+	"github.com/Quavke/eBookReader/pkg/services"
 	"log"
 	"net/http"
 	"strconv"

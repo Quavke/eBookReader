@@ -1,11 +1,12 @@
 package controllers
 
 import (
-	"ebookr/pkg/models"
-	"ebookr/pkg/services"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/Quavke/eBookReader/pkg/models"
+	"github.com/Quavke/eBookReader/pkg/services"
 
 	"github.com/gin-gonic/gin"
 )

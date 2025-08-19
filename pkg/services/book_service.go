@@ -1,8 +1,8 @@
 package services
 
 import (
-	"ebookr/pkg/models"
-	"ebookr/pkg/repositories"
+	"github.com/Quavke/eBookReader/pkg/models"
+	"github.com/Quavke/eBookReader/pkg/repositories"
 )
 
 type BookService interface {

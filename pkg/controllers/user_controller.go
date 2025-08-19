@@ -1,13 +1,14 @@
 package controllers
 
 import (
-	"ebookr/pkg/models"
-	"ebookr/pkg/services"
-	"ebookr/pkg/utils"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/Quavke/eBookReader/pkg/models"
+	"github.com/Quavke/eBookReader/pkg/services"
+	"github.com/Quavke/eBookReader/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -37,12 +38,14 @@ func (ctrl *UserController) GetAll(c *gin.Context){
 		log.Printf("Author controller GetAll error, cast page to int. Error: %s", err.Error())
 		return
 	}
+
 	users, err := ctrl.UserService.GetAllUsers(limit, page, "id desc")
 	if err != nil{
     c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot get all users"})
 		log.Printf("User controller GetAll error, service method GetAllUsers. Error: %s", err.Error())
 		return
 	}
+	
   c.JSON(http.StatusOK, models.APIResponse[any]{Message: "Success", Data: users})
 }
 

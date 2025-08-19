@@ -1,8 +1,9 @@
 package services
 
 import (
-	"ebookr/pkg/models"
-	"ebookr/pkg/repositories"
+	"github.com/Quavke/eBookReader/pkg/models"
+	"github.com/Quavke/eBookReader/pkg/repositories"
+	"github.com/redis/go-redis/v9"
 )
 
 type AuthorService interface {

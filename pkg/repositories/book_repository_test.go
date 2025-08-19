@@ -1,8 +1,8 @@
 package repositories_test
 
 import (
-	"ebookr/pkg/models"
-	"ebookr/pkg/repositories"
+	"github.com/Quavke/eBookReader/pkg/models"
+	"github.com/Quavke/eBookReader/pkg/repositories"
 	"regexp"
 	"testing"
 	"time"
