@@ -58,7 +58,7 @@ type AuthorResp struct {
     Birthday  DateOnly  `json:"birthday"`
 }
 
-type AuthorUpdate struct {
+type UpdateAuthorReq struct {
     Firstname string `json:"firstname,omitempty"`
     Lastname string `json:"lastname,omitempty"`
     Birthday DateOnly `json:"birthday,omitempty"`

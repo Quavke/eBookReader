@@ -6,10 +6,10 @@ import (
 )
 
 type AuthorService interface {
-	GetAllAuthors()       									     (*[]models.AuthorResp, error)
+	GetAllAuthors(limit, page int, sort string)  (*models.Pagination, error)
 	GetAuthorByID(id uint) 									     (*models.AuthorResp, error)
 	CreateAuthor(author *models.Author)          error
-	UpdateAuthor(author *models.AuthorUpdate, id uint)  error
+	UpdateAuthor(author *models.UpdateAuthorReq, id uint)  error
 	DeleteAuthor(id uint)                         error
 }
 
@@ -21,13 +21,21 @@ func NewAuthorService(repo repositories.AuthorRepo) *AuthorServiceImpl{
 	return &AuthorServiceImpl{repo: repo}
 }
 
-func (s *AuthorServiceImpl) GetAllAuthors() (*[]models.AuthorResp, error){
-	authorsDB, err := s.repo.GetAll()
+var _ AuthorService = (*AuthorServiceImpl)(nil)
+
+func (s *AuthorServiceImpl) GetAllAuthors(limit, page int, sort string) (*models.Pagination, error){
+	p := &models.Pagination{
+		Limit: limit,
+		Page: page,
+		Sort: sort,
+	}
+	p, err := s.repo.GetAll(p)
 	if err != nil {
 		return nil, err
 	}
-	authors := make([]models.AuthorResp, 0, len(authorsDB))
-	for _, a := range authorsDB {
+	rows := p.Rows.([]models.Author)
+	authors := make([]models.AuthorResp, 0, len(rows))
+	for _, a := range rows {
 		authors = append(authors, models.AuthorResp{
 			UserID: a.UserID,
 			Firstname: a.Firstname,
@@ -35,7 +43,8 @@ func (s *AuthorServiceImpl) GetAllAuthors() (*[]models.AuthorResp, error){
 			Birthday: a.Birthday,
 		})
 	}
-	return &authors, nil
+	p.Rows = authors
+	return p, nil
 }
 
 func (s *AuthorServiceImpl) GetAuthorByID(id uint) (*models.AuthorResp, error){
@@ -56,7 +65,7 @@ func (s *AuthorServiceImpl) CreateAuthor(author *models.Author) error{
 	return s.repo.Create(author)
 }
 
-func (s *AuthorServiceImpl) UpdateAuthor(author *models.AuthorUpdate, id uint) error{
+func (s *AuthorServiceImpl) UpdateAuthor(author *models.UpdateAuthorReq, id uint) error{
 	if author.Firstname == "" && author.Lastname == "" && author.Birthday.IsZero() {
 		return nil
 	}

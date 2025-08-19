@@ -11,7 +11,7 @@ import (
 )
 
 type UserService interface {
-	GetAllUsers()       									  (*[]models.UserResp, error)
+	GetAllUsers(limit, page int, sort string)       									  (*[]models.UserResp, error)
 	GetUserByID(id uint) 									  (*models.UserResp, error)
 	CreateUser(username string, pwd []byte)           error
 	LoginUser(user *models.RegisterReq) (*models.Claims, error)
@@ -29,15 +29,20 @@ func NewUserService(repo repositories.UserRepo) *UserServiceImpl{
 
 var _ UserService = (*UserServiceImpl)(nil)
 
-func (s UserServiceImpl) GetAllUsers() (*[]models.UserResp, error){
-	usersDB, err := s.repo.GetAll()
-	if err != nil {
-		return nil, err
-	}
-    users := make([]models.UserResp, 0, len(usersDB))
+func (s UserServiceImpl) GetAllUsers(limit, page int, sort string) (*[]models.UserResp, error){
+		p := &models.Pagination{
+			Limit: limit,
+			Page: page,
+			Sort: sort,
+		}
+		p, err := s.repo.GetAll(p)
+		if err != nil {
+			return nil, err
+		}
+    users := make([]models.UserResp, 0, len(p.Rows.([]models.UserDB)))
 
-    ids := make([]uint, 0, len(usersDB))
-    for _, u := range usersDB {
+    ids := make([]uint, 0, len(p.Rows.([]models.UserDB)))
+    for _, u := range p.Rows.([]models.UserDB) {
         ids = append(ids, u.ID)
     }
 
@@ -45,7 +50,7 @@ func (s UserServiceImpl) GetAllUsers() (*[]models.UserResp, error){
     if err != nil {
         return nil, err
     }
-    for _, u := range usersDB {
+    for _, u := range p.Rows.([]models.UserDB) {
         users = append(users, models.UserResp{
             Username: u.Username,
             IsAuthor: isAuthor[u.ID],

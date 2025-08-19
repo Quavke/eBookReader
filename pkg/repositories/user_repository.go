@@ -13,7 +13,7 @@ type UserRepo interface {
 	IsExists(id uint) error
 	IsAuthor(id uint) (bool, error)
     IsAuthors(ids []uint) (map[uint]bool, error)
-    GetAll() ([]models.UserDB, error)
+    GetAll(p *models.Pagination) (*models.Pagination, error)
     Update(user *models.UpdateReq, id uint) error
     Delete(id uint) error
     GetByUsername(username string) (*models.UserDB, error)
@@ -93,16 +93,21 @@ func (r *GormUserRepo) IsAuthors(ids []uint) (map[uint]bool, error) {
 }
 
 
-func (r *GormUserRepo) GetAll() ([]models.UserDB, error){
-	var user []models.UserDB
-	result := r.db.Find(&user)
+func (r *GormUserRepo) GetAll(p *models.Pagination) (*models.Pagination, error){
+	var users []models.UserDB
+    result := r.db.Scopes(models.Paginate(users, p, r.db)).Find(&users)
+
+	p.Rows = users
+    if len(p.Rows.([]models.UserDB)) == 0{
+        return nil, gorm.ErrRecordNotFound
+    }
 	if result.RowsAffected == 0 {
 		return nil, gorm.ErrRecordNotFound
 	}
 	if err := result.Error; err != nil {
 		return nil, err
 	}
-	return user, nil
+	return p, nil
 }
 
 func (r *GormUserRepo) Update(user *models.UpdateReq, id uint) error{

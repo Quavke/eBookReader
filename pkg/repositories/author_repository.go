@@ -9,8 +9,8 @@ import (
 type AuthorRepo interface {
     Create(author *models.Author) error
     GetByID(id uint) (*models.Author, error)
-    GetAll() ([]models.Author, error)
-    Update(author *models.AuthorUpdate, id uint) error
+    GetAll(p *models.Pagination) (*models.Pagination, error)
+    Update(author *models.UpdateAuthorReq, id uint) error
     Delete(id uint) error
 }
 
@@ -45,19 +45,22 @@ func (r GormAuthorRepo) GetByID(id uint) (*models.Author, error){
 	return &author, nil
 }
 
-func (r GormAuthorRepo) GetAll() ([]models.Author, error){
+func (r GormAuthorRepo) GetAll(p *models.Pagination) (*models.Pagination, error){
 	var authors []models.Author
-	result := r.db.Preload("Books").Find(&authors)
-	if result.RowsAffected == 0{
+	result := r.db.Scopes(models.Paginate(authors, p, r.db)).Find(&authors)
+
+	p.Rows = authors
+
+	if len(p.Rows.([]models.Author)) == 0{
 		return nil, gorm.ErrRecordNotFound
 	}
 	if err := result.Error; err != nil{
 		return nil, err
 	}
-	return authors, nil
+	return p, nil
 }
 
-func (r GormAuthorRepo) Update(author *models.AuthorUpdate, id uint) error{
+func (r GormAuthorRepo) Update(author *models.UpdateAuthorReq, id uint) error{
 	return r.db.Transaction(func(tx *gorm.DB) error {
         var existing models.Author
 				result := tx.Where("user_id = ?", id).First(&existing)

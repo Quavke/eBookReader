@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,7 +21,23 @@ func NewUserController(service services.UserService) *UserController{
 }
 
 func (ctrl *UserController) GetAll(c *gin.Context){
-	users, err := ctrl.UserService.GetAllUsers()
+	limitStr := c.DefaultQuery("l", "50")
+	pageStr := c.DefaultQuery("p", "1")
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot create integer limit"})
+		log.Printf("Author controller GetAll error, cast limit to int. Error: %s", err.Error())
+		return
+	}
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot create integer page"})
+		log.Printf("Author controller GetAll error, cast page to int. Error: %s", err.Error())
+		return
+	}
+	users, err := ctrl.UserService.GetAllUsers(limit, page, "id desc")
 	if err != nil{
     c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot get all users"})
 		log.Printf("User controller GetAll error, service method GetAllUsers. Error: %s", err.Error())
@@ -116,4 +133,23 @@ func (ctrl *UserController) Delete(c *gin.Context){
 	}
 	c.SetCookie("Authorization", "", -1, "/", "", isProd, true)
 	c.Status(http.StatusNoContent)
+}
+
+func (ctrl *UserController) GetCreateMock(c *gin.Context) {
+	users := make([]models.RegisterReq, 200)
+	for i := range users {
+    users[i] = models.RegisterReq{
+        Username: "user" + strconv.Itoa(i+1),
+				Password: "password" + strconv.Itoa(i+1),
+    }
+	}
+	for i := range users {
+		if err := ctrl.UserService.CreateUser(users[i].Username, []byte(users[i].Password)); err != nil {
+			log.Printf("User controller GetCreateMock error, service method CreateUser. Error: %s", err.Error())
+			c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot create mock users"})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, models.APIResponse[any]{Message: "successful create"})
 }

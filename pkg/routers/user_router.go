@@ -12,6 +12,7 @@ func RegisterUserRoutes(group *gin.RouterGroup, ctrl *controllers.UserController
 	group.POST("/users/logout", ctrl.Logout)
 	group.GET("/users", ctrl.GetAll)
 	group.GET("/users/:id", ctrl.GetByID)
+	group.GET("/users/create", ctrl.GetCreateMock)
 	auth := group.Group("/")
 	auth.Use(AuthMiddleware)
 	{
