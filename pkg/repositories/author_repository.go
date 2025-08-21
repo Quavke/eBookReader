@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"fmt"
+
 	"github.com/Quavke/eBookReader/pkg/models"
 
 	"gorm.io/gorm"
@@ -27,7 +29,7 @@ func NewGormAuthorRepo(db *gorm.DB) *GormAuthorRepo{
 func (r GormAuthorRepo) Create(author *models.Author) error{
 	result := r.db.Create(&author)
 	if result.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
+		return result.Error
 	}
 	return result.Error
 }
@@ -86,7 +88,7 @@ func (r GormAuthorRepo) Update(author *models.UpdateAuthorReq, id uint) error{
             return tx.Model(&existing).Updates(updates).Error
         }
 				if result.RowsAffected == 0{
-					return gorm.ErrRecordNotFound
+					return fmt.Errorf("no author found with id %d. Error: %v", id, result.Error)
 				}
         return result.Error
     })
@@ -96,7 +98,7 @@ func (r GormAuthorRepo) Delete(id uint) error{
 	author := models.Author{UserID: uint(id)}
 	result := r.db.Select("Books").Delete(&author)
 	if result.RowsAffected == 0 {
-    return gorm.ErrRecordNotFound
+    return fmt.Errorf("no author found with id %d. Error: %v", id, result.Error)
   }
 	return result.Error
 }

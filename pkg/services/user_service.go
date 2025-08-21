@@ -14,12 +14,12 @@ import (
 )
 
 type UserService interface {
-	GetAllUsers(limit, page int, sort string)       									  (*[]models.UserResp, error)
-	GetUserByID(id uint) 									  (*models.UserResp, error)
-	CreateUser(username string, pwd []byte)           error
-	LoginUser(user *models.RegisterReq) (*models.Claims, error)
-	UpdateUser(user *models.UpdateReq, id uint)   error
-	DeleteUser(id uint)                      error
+	GetAllUsers(limit, page uint, sort string)      (*models.Pagination, error)
+	GetUserByID(id uint) 									  				(*models.UserResp, error)
+	CreateUser(username string, pwd []byte)         error
+	LoginUser(user *models.RegisterReq) 						(*models.Claims, error)
+	UpdateUser(user *models.UpdateReq, id uint)   	error
+	DeleteUser(id uint)                      				error
 }
 
 type UserServiceImpl struct {
@@ -38,7 +38,7 @@ func NewUserService(repo repositories.UserRepo, context context.Context, redisCl
 
 var _ UserService = (*UserServiceImpl)(nil)
 
-func (s UserServiceImpl) GetAllUsers(limit, page int, sort string) (*[]models.UserResp, error){
+func (s UserServiceImpl) GetAllUsers(limit, page uint, sort string) (*models.Pagination, error){
 		p := &models.Pagination{
 			Limit: limit,
 			Page: page,

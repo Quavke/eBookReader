@@ -9,6 +9,7 @@ import (
 func RegisterBookRoutes(group *gin.RouterGroup, ctrl *controllers.BookController, AuthMiddleware gin.HandlerFunc, BooksMiddleware gin.HandlerFunc){
 	group.GET("/books", ctrl.GetAll)
 	group.GET("/books/:id", ctrl.GetByID)
+	group.GET("/books/create", ctrl.GetCreateMock)
 	auth := group.Group("/")
 	auth.Use(AuthMiddleware)
 	auth.Use(BooksMiddleware)

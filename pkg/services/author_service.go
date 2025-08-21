@@ -13,7 +13,7 @@ import (
 )
 
 type AuthorService interface {
-	GetAllAuthors(limit, page int, sort string)  (*models.Pagination, error)
+	GetAllAuthors(limit, page uint, sort string)  (*models.Pagination, error)
 	GetAuthorByID(id uint) 									     (*models.AuthorResp, error)
 	CreateAuthor(author *models.Author)          error
 	UpdateAuthor(author *models.UpdateAuthorReq, id uint)  error
@@ -36,7 +36,7 @@ func NewAuthorService(repo repositories.AuthorRepo, context context.Context, 	re
 
 var _ AuthorService = (*AuthorServiceImpl)(nil)
 
-func (s *AuthorServiceImpl) GetAllAuthors(limit, page int, sort string) (*models.Pagination, error){
+func (s *AuthorServiceImpl) GetAllAuthors(limit, page uint, sort string) (*models.Pagination, error){
 	cacheKey := fmt.Sprintf("authors:limit=%d,page=%d,sort=%s", limit, page, sort)
 	cachedData, err := s.redisClient.Get(s.context, cacheKey).Result()
 	if err == nil && cachedData != "" {
@@ -47,8 +47,8 @@ func (s *AuthorServiceImpl) GetAllAuthors(limit, page int, sort string) (*models
 	}
 
 	p := &models.Pagination{
-		Limit: limit,
-		Page: page,
+		Limit: uint(limit),
+		Page: uint(page),
 		Sort: sort,
 	}
 	p, err = s.repo.GetAll(p)
@@ -137,9 +137,6 @@ func (s *AuthorServiceImpl) CreateAuthor(author *models.Author) error{
 }
 
 func (s *AuthorServiceImpl) UpdateAuthor(author *models.UpdateAuthorReq, id uint) error{
-	if author.Firstname == "" && author.Lastname == "" && author.Birthday.IsZero() {
-		return nil
-	}
 	cacheKey := fmt.Sprintf("update_author:firstname=%s,lastname=%s,birthday=%s", author.Firstname, author.Lastname, author.Birthday.Format("2006-01-02"))
 	cachedData, err := s.redisClient.Get(s.context, cacheKey).Result()
 	if err == nil && cachedData != "" {

@@ -23,14 +23,14 @@ func (ctrl *AuthorController) GetAll(c *gin.Context){
 	limitStr := c.DefaultQuery("l", "50")
 	pageStr := c.DefaultQuery("p", "1")
 
-	limit, err := strconv.Atoi(limitStr)
+	limit, err := strconv.ParseUint(limitStr, 10, 64)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot create integer limit"})
 		log.Printf("Author controller GetAll error, cast limit to int. Error: %s", err.Error())
 		return
 	}
 
-	page, err := strconv.Atoi(pageStr)
+	page, err := strconv.ParseUint(pageStr, 10, 64)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot create integer page"})
 		log.Printf("Author controller GetAll error, cast page to int. Error: %s", err.Error())
@@ -38,7 +38,7 @@ func (ctrl *AuthorController) GetAll(c *gin.Context){
 	}
 
 	
-	authors, err := ctrl.AuthorService.GetAllAuthors(limit, page, "user_id desc")
+	authors, err := ctrl.AuthorService.GetAllAuthors(uint(limit), uint(page), "user_id desc")
 	if err != nil {
     c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot get all authors"})
     log.Printf("Author controller GetAll error, service method GetAllAuthors. Error: %s", err.Error())
@@ -49,7 +49,7 @@ func (ctrl *AuthorController) GetAll(c *gin.Context){
 
 func (ctrl *AuthorController) GetByID(c *gin.Context){
 	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
+	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
     c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot create integer id"})
     log.Printf("Author controller GetByID error, cast id to int. Error: %s", err.Error())

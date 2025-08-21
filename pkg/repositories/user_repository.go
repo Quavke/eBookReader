@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/Quavke/eBookReader/pkg/models"
 
@@ -127,7 +128,7 @@ func (r *GormUserRepo) Update(user *models.UpdateReq, id uint) error{
 
         result = tx.Model(&existing).Updates(updates)
         if result.RowsAffected == 0 {
-            return gorm.ErrRecordNotFound
+            return fmt.Errorf("no user found with id %d. Error: %v", id, result.Error)
         }
         return result.Error
     })
@@ -144,7 +145,7 @@ func (r *GormUserRepo) Delete(id uint) error{
         user.ID = id
         result := tx.Delete(&user)
         if result.RowsAffected == 0 {
-            return gorm.ErrRecordNotFound
+            return fmt.Errorf("no user found with id %d. Error: %v", id, result.Error)
         }
         return result.Error
     })

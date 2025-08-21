@@ -25,21 +25,21 @@ func (ctrl *UserController) GetAll(c *gin.Context){
 	limitStr := c.DefaultQuery("l", "50")
 	pageStr := c.DefaultQuery("p", "1")
 
-	limit, err := strconv.Atoi(limitStr)
+	limit, err := strconv.ParseUint(limitStr, 10, 64)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot create integer limit"})
 		log.Printf("Author controller GetAll error, cast limit to int. Error: %s", err.Error())
 		return
 	}
 
-	page, err := strconv.Atoi(pageStr)
+	page, err := strconv.ParseUint(pageStr, 10, 64)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot create integer page"})
 		log.Printf("Author controller GetAll error, cast page to int. Error: %s", err.Error())
 		return
 	}
 
-	users, err := ctrl.UserService.GetAllUsers(limit, page, "id desc")
+	users, err := ctrl.UserService.GetAllUsers(uint(limit), uint(page), "id desc")
 	if err != nil{
     c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot get all users"})
 		log.Printf("User controller GetAll error, service method GetAllUsers. Error: %s", err.Error())
@@ -50,10 +50,17 @@ func (ctrl *UserController) GetAll(c *gin.Context){
 }
 
 func (ctrl *UserController) GetByID(c *gin.Context){
-	user, err := ctrl.UserService.GetUserByID(1)
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+    c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot cast id to integer"})
+    log.Printf("User controller GetByID error, cast id to int. Error: %s", err.Error())
+		return
+	}
+	user, err := ctrl.UserService.GetUserByID(uint(id))
 	if err != nil {
     c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot user by this ID"})
-		log.Printf("User controller GetAll error, service method GetUserByID. Error: %s", err.Error())
+		log.Printf("User controller GetByID error, service method GetUserByID. Error: %s", err.Error())
 		return
 	}
   c.JSON(http.StatusOK, models.APIResponse[any]{Message: "Successful", Data: user})
