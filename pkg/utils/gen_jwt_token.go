@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"ebookr/pkg/models"
+	"github.com/Quavke/eBookReader/pkg/models"
 
 	"github.com/golang-jwt/jwt/v5"
 )

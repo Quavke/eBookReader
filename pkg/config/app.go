@@ -1,14 +1,18 @@
 package config
 
 import (
-	"ebookr/pkg/controllers"
-	"ebookr/pkg/models"
-	"ebookr/pkg/repositories"
-	"ebookr/pkg/routers"
-	"ebookr/pkg/services"
+	"context"
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/Quavke/eBookReader/pkg/controllers"
+	"github.com/Quavke/eBookReader/pkg/middlewares"
+	"github.com/Quavke/eBookReader/pkg/models"
+	"github.com/Quavke/eBookReader/pkg/repositories"
+	"github.com/Quavke/eBookReader/pkg/routers"
+	"github.com/Quavke/eBookReader/pkg/services"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -18,18 +22,23 @@ import (
 	"gorm.io/gorm/logger"
 )
 type Config struct {
+		IsProd bool 					`mapstructure:"IS_PROD"`
 		Server struct {
-			Port int      `mapstructure:"PORT"`
+			Port int      			`mapstructure:"PORT"`
 		}											`mapstructure:"server"`
 		DB struct {
-			Host     string   `mapstructure:"HOST"`
-			Port     int      `mapstructure:"PORT"`
-			Name     string   `mapstructure:"NAME"`
-			User     string   `mapstructure:"USER"`
+			Host     	 string   `mapstructure:"HOST"`
+			Port     	 int      `mapstructure:"PORT"`
+			Name     	 string   `mapstructure:"NAME"`
+			User     	 string   `mapstructure:"USER"`
 			TimeZone   string   `mapstructure:"TIME_ZONE"`
-			SSLMode    string   `mapstructure:"SSL_Mode"`
+			SSLMode    string   `mapstructure:"SSL_MODE"`
 			DSN        string
-		}   									  `mapstructure:"db"`
+		}   									`mapstructure:"db"`
+		Redis struct {
+			Host string 				`mapstructure:"HOST"`
+			Port int 						`mapstructure:"PORT"`
+		}											`mapstructure:"redis"`		
 }
 type App struct {
 	router *gin.Engine
@@ -59,12 +68,19 @@ func NewConfig() (*Config, error) {
 	if cfg.DB.Host == "" || cfg.DB.User == "" || cfg.DB.Name == "" {
     return nil,fmt.Errorf("db host/user/name are required")
   }
+	if gin.Mode() == gin.ReleaseMode {
+		cfg.IsProd = true
+	}
 	return &cfg, nil
 }
 
 
 func NewApp(cfg *Config) (*App, error) {
 	router := gin.Default()
+	router.Use(func(c *gin.Context) {
+		c.Set("isProd", cfg.IsProd)
+		c.Next()
+	})
 	err := godotenv.Load()
 	if err != nil{
 		return nil, err
@@ -79,32 +95,51 @@ func NewApp(cfg *Config) (*App, error) {
   Logger: logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+		return nil, fmt.Errorf("failed to connect to database: %v", err)
 	}
 	sqlDB, err := db.DB()
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(1 * time.Hour)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+		return nil, fmt.Errorf("failed to connect to database: %v", err)
 	}
 	db.AutoMigrate(&models.Author{}, &models.Book{}, &models.UserDB{})
+
+	context := context.Background()
+
+	addr := fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port)
+	if cfg.Redis.Host == "" || cfg.Redis.Port == 0 {
+		return nil, fmt.Errorf("redis host/port are required")
+	}
+
+	client := redis.NewClient(&redis.Options{
+        Addr:	  addr,
+        Password: os.Getenv("REDIS_PASSWORD"),
+        DB:		  0,
+        Protocol: 2,
+				ReadTimeout: 5 * time.Second,
+				WriteTimeout: 5 * time.Second,
+  })
 	
 	bookRepo := repositories.NewGormBookRepo(db)
-	bookService := services.NewBookService(bookRepo)
+	bookService := services.NewBookService(bookRepo, context, client)
 	bookController := controllers.NewBookController(bookService)
-
+	
 	authorRepo := repositories.NewGormAuthorRepo(db)
-	authorService := services.NewAuthorService(authorRepo)
+	authorService := services.NewAuthorService(authorRepo, context, client)
 	authorController := controllers.NewAuthorController(authorService)
 
 	userRepo := repositories.NewGormUserRepo(db)
-	userService := services.NewUserService(userRepo)
+	userService := services.NewUserService(userRepo, context, client)
 	userController := controllers.NewUserController(userService)
 
-	routers.RegisterBookRoutes(v1, bookController)
-	routers.RegisterAuthorRoutes(v1, authorController)
-	routers.RegisterUserRoutes(v1, userController, userRepo) // , middlewares.AuthMiddleware()
+	AuthMiddleware := middlewares.AuthMiddleware(userRepo)
+	BooksMiddleware := middlewares.BooksMiddleware(userRepo)
+
+	routers.RegisterBookRoutes(v1, bookController, AuthMiddleware, BooksMiddleware)
+	routers.RegisterAuthorRoutes(v1, authorController, AuthMiddleware)
+	routers.RegisterUserRoutes(v1, userController, AuthMiddleware)
 	return &App{
 		router: router,
 		cfg:    cfg,

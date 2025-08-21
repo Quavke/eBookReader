@@ -16,12 +16,14 @@ type UpdateReq struct {
 
 type UserDB struct {
 	gorm.Model
-	Username string     `gorm:"type:varchar(64);not null;uniqueIndex:ux_users_username"`
-	PasswordHash []byte `json:"-" gorm:"not null"`
+	Username     string    `gorm:"type:varchar(64);not null;uniqueIndex:ux_users_username"`
+	PasswordHash []byte    `json:"-" gorm:"not null"`
+	Author       *Author 	 `json:"-" gorm:"foreignKey:UserID;references:ID"`
 }
 
 type UserResp struct {
 	Username string     `json:"username"`
+	IsAuthor bool     	`json:"author"`
 }
 type Claims struct {
 	UserID uint `json:"user_id"`

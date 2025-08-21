@@ -1,8 +1,8 @@
 package middlewares
 
 import (
-	"ebookr/pkg/models"
-	"ebookr/pkg/repositories"
+	"github.com/Quavke/eBookReader/pkg/models"
+	"github.com/Quavke/eBookReader/pkg/repositories"
 	"fmt"
 	"net/http"
 	"os"

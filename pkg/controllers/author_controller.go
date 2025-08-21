@@ -1,11 +1,12 @@
 package controllers
 
 import (
-	"ebookr/pkg/models"
-	"ebookr/pkg/services"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/Quavke/eBookReader/pkg/models"
+	"github.com/Quavke/eBookReader/pkg/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,86 +20,125 @@ func NewAuthorController(service services.AuthorService) *AuthorController {
 }
 
 func (ctrl *AuthorController) GetAll(c *gin.Context){
-	authors, err := ctrl.AuthorService.GetAllAuthors()
+	limitStr := c.DefaultQuery("l", "50")
+	pageStr := c.DefaultQuery("p", "1")
+
+	limit, err := strconv.ParseUint(limitStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "error", "error": "cannot get all authors"})
-        log.Printf("Author controller GetAll error, service method GetAllAuthors. Error: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot create integer limit"})
+		log.Printf("Author controller GetAll error, cast limit to int. Error: %s", err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "successful", "error": nil, "authors": authors})
+
+	page, err := strconv.ParseUint(pageStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot create integer page"})
+		log.Printf("Author controller GetAll error, cast page to int. Error: %s", err.Error())
+		return
+	}
+
+	
+	authors, err := ctrl.AuthorService.GetAllAuthors(uint(limit), uint(page), "user_id desc")
+	if err != nil {
+    c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot get all authors"})
+    log.Printf("Author controller GetAll error, service method GetAllAuthors. Error: %s", err.Error())
+		return
+	}
+  c.JSON(http.StatusOK, models.APIResponse[any]{Message: "successful", Data: authors})
 }
 
 func (ctrl *AuthorController) GetByID(c *gin.Context){
 	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
+	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "error", "error": "cannot create integer id"})
-        log.Printf("Author controller GetByID error, cast id to int. Error: %s", err.Error())
+    c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot create integer id"})
+    log.Printf("Author controller GetByID error, cast id to int. Error: %s", err.Error())
 		return
 	}
-	author, err := ctrl.AuthorService.GetAuthorByID(id)
+	author, err := ctrl.AuthorService.GetAuthorByID(uint(id))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "error", "error": "cannot get author by this id"})
-        log.Printf("Author controller GetByID error, service method GetAuthorByID. Error: %s", err.Error())
+    c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot get author by this id"})
+    log.Printf("Author controller GetByID error, service method GetAuthorByID. Error: %s", err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "successful create", "error": nil, "author": author})
+  c.JSON(http.StatusOK, models.APIResponse[any]{Message: "successful", Data: author})
 }
 
 func (ctrl *AuthorController) Create(c *gin.Context){
 	var author models.Author
 
-	if err := c.ShouldBindBodyWithJSON(&author); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "error", "error": "something wrong with your request. You need to sent Firstname, Lastname, Birthday(yyyy-mm-dd)"})
-        log.Printf("Author controller Create error, bind. Error: %s", err.Error())
-		return
-	}
+	user := c.MustGet("claims").(*models.Claims)
 
-	if err := ctrl.AuthorService.CreateAuthor(&author); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "error", "error": "can't create author"})
-        log.Printf("Author controller Create error, service method CreateAuthor. Error: %s", err.Error())
+	if err := c.ShouldBindBodyWithJSON(&author); err != nil {
+    c.JSON(http.StatusBadRequest, models.APIResponse[any]{Message: "error", Error: "something wrong with your request. You need to sent Firstname, Lastname, Birthday(yyyy-mm-dd)"})
+    log.Printf("Author controller Create error, bind. Error: %s", err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "successful create", "error": nil})
+	author.UserID = user.UserID
+	if err := ctrl.AuthorService.CreateAuthor(&author); err != nil {
+    c.JSON(http.StatusBadRequest, models.APIResponse[any]{Message: "error", Error: "cannot create author"})
+    log.Printf("Author controller Create error, service method CreateAuthor. Error: %s", err.Error())
+		return
+	}
+  c.JSON(http.StatusOK, models.APIResponse[any]{Message: "successful create"})
 }
 
 func (ctrl *AuthorController) Update(c *gin.Context){
-	var author models.Author
+	var author models.UpdateAuthorReq
+	
+	claims := c.MustGet("claims").(*models.Claims)
 
-	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "error", "error": "can't create integer id"})
-        log.Printf("Author controller Update error, cast id to int. Error: %s", err.Error())
-		return
-	}
 
 	if err := c.ShouldBindBodyWithJSON(&author); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "error", "error": "something wrong with your request. You need to sent Firstname, Lastname, Birthday(yyyy-mm-dd)"})
-        log.Printf("Author controller Update error, bind. Error: %s", err.Error())
+    c.JSON(http.StatusBadRequest, models.APIResponse[any]{Message: "error", Error: "something wrong with your request. You need to sent Firstname or Lastname or Birthday(yyyy-mm-dd)"})
+    log.Printf("Author controller Update error, bind. Error: %s", err.Error())
 		return
 	}
-	if err := ctrl.AuthorService.UpdateAuthor(&author, id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "error", "error": "can't update author"})
-        log.Printf("Author controller Update error, service method UpdateAuthor. Error: %s", err.Error())
+
+	if author.Firstname == "" && author.Lastname == "" && author.Birthday.IsZero() {
+		c.JSON(http.StatusOK, models.APIResponse[any]{
+				Message: "successful update", 
+				Data: "No fields to update"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "successful update", "error": nil})
+
+	if err := ctrl.AuthorService.UpdateAuthor(&author, claims.UserID); err != nil {
+    c.JSON(http.StatusBadRequest, models.APIResponse[any]{Message: "error", Error: "cannot update author"})
+    log.Printf("Author controller Update error, service method UpdateAuthor. Error: %s", err.Error())
+		return
+	}
+  c.JSON(http.StatusOK, models.APIResponse[any]{Message: "successful update"})
 }
 
 func (ctrl *AuthorController) Delete(c *gin.Context){
-	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "error", "error": "can't cast id to integer"})
-        log.Printf("Author controller Delete error, cast id to int. Error: %s", err.Error())
+	claims := c.MustGet("claims").(*models.Claims)
+
+	if err := ctrl.AuthorService.DeleteAuthor(claims.UserID); err != nil {
+    c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "can't delete author by this id"})
+    log.Printf("Author controller Delete error, service method DeleteAuthor. Error: %s", err.Error())
 		return
+	}
+	c.Status(http.StatusNoContent)
+}
+
+func (ctrl *AuthorController) GetCreateMock(c *gin.Context) {
+	authors := make([]models.Author, 200)
+	for i := range authors {
+    authors[i] = models.Author{
+        UserID: uint(i+1),
+				Firstname: "firstname" + strconv.Itoa(i+1),
+				Lastname: "lastname" + strconv.Itoa(i+1),
+				Birthday: models.DateOnly{Time: models.DateOnly{}.Time.AddDate(0, 0, i+1),
+			},
+		}
+	}
+	for i := range authors {
+		if err := ctrl.AuthorService.CreateAuthor(&authors[i]); err != nil {
+			log.Printf("User controller GetCreateMock error, service method CreateUser. Error: %s", err.Error())
+			c.JSON(http.StatusInternalServerError, models.APIResponse[any]{Message: "error", Error: "cannot create mock users"})
+			return
+		}
 	}
 
-	if err := ctrl.AuthorService.DeleteAuthor(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "error", "error": "can't delete author by this id"})
-        log.Printf("Author controller Delete error, service method DeleteAuthor. Error: %s", err.Error())
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "successful delete", "error": nil})
+	c.JSON(http.StatusOK, models.APIResponse[any]{Message: "successful create"})
 }

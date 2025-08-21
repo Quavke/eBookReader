@@ -1,17 +1,21 @@
 package routers
 
 import (
-	"ebookr/pkg/controllers"
+	"github.com/Quavke/eBookReader/pkg/controllers"
 
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterBookRoutes(group *gin.RouterGroup, ctrl *controllers.BookController){
+func RegisterBookRoutes(group *gin.RouterGroup, ctrl *controllers.BookController, AuthMiddleware gin.HandlerFunc, BooksMiddleware gin.HandlerFunc){
+	group.GET("/books", ctrl.GetAll)
+	group.GET("/books/:id", ctrl.GetByID)
+	group.GET("/books/create", ctrl.GetCreateMock)
+	auth := group.Group("/")
+	auth.Use(AuthMiddleware)
+	auth.Use(BooksMiddleware)
 	{
-		group.GET("/books", ctrl.GetAll)
-		group.GET("/books/:id", ctrl.GetByID)
-		group.POST("/books", ctrl.Create)
-		group.PUT("/books/:id", ctrl.Update)
-		group.DELETE("/books/:id", ctrl.Delete)
+		auth.POST("/books", ctrl.Create)
+		auth.PUT("/books/:id", ctrl.Update)
+		auth.DELETE("/books/:id", ctrl.Delete)
 	}
 }
