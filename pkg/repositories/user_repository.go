@@ -1,8 +1,9 @@
 package repositories
 
 import (
-	"github.com/Quavke/eBookReader/pkg/models"
 	"errors"
+
+	"github.com/Quavke/eBookReader/pkg/models"
 
 	"gorm.io/gorm"
 )

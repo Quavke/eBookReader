@@ -1,24 +1,33 @@
 package services
 
 import (
+	"context"
+
 	"github.com/Quavke/eBookReader/pkg/models"
 	"github.com/Quavke/eBookReader/pkg/repositories"
+	"github.com/redis/go-redis/v9"
 )
 
 type BookService interface {
-	GetAllBooks()       									  (*[]models.BookResp, error)
-	GetBookByID(bookID int) 									  (*models.BookResp, error)
-	CreateBook(book *models.Book)           error
+	GetAllBooks()       									  								(*[]models.BookResp, error)
+	GetBookByID(bookID int) 									  						(*models.BookResp, error)
+	CreateBook(book *models.Book)           								 error
 	UpdateBook(book *models.Book, bookID int, userID uint)   error
 	DeleteBook(bookID int, userID uint)                      error
 }
 
 type BookServiceImpl struct {
 	repo repositories.BookRepo
+	context context.Context
+	redisClient *redis.Client
 }
 
-func NewBookService(repo repositories.BookRepo) *BookServiceImpl{
-	return &BookServiceImpl{repo: repo}
+func NewBookService(repo repositories.BookRepo, context context.Context, redisClient *redis.Client) *BookServiceImpl{
+	return &BookServiceImpl{
+		repo: repo,
+		context: context,
+		redisClient: redisClient,
+	}
 }
 
 func (s *BookServiceImpl) GetAllBooks() (*[]models.BookResp, error){

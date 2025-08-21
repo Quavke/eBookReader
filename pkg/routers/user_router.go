@@ -1,7 +1,7 @@
 package routers
 
 import (
-	"ebookr/pkg/controllers"
+	"github.com/Quavke/eBookReader/pkg/controllers"
 
 	"github.com/gin-gonic/gin"
 )

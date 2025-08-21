@@ -1,11 +1,12 @@
 package controllers
 
 import (
-	"github.com/Quavke/eBookReader/pkg/models"
-	"github.com/Quavke/eBookReader/pkg/services"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/Quavke/eBookReader/pkg/models"
+	"github.com/Quavke/eBookReader/pkg/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -60,7 +61,7 @@ func (ctrl *AuthorController) GetByID(c *gin.Context){
     log.Printf("Author controller GetByID error, service method GetAuthorByID. Error: %s", err.Error())
 		return
 	}
-  c.JSON(http.StatusOK, models.APIResponse[any]{Message: "successful create", Data: author})
+  c.JSON(http.StatusOK, models.APIResponse[any]{Message: "successful", Data: author})
 }
 
 func (ctrl *AuthorController) Create(c *gin.Context){

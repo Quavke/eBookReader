@@ -1,8 +1,9 @@
 package main
 
 import (
-	"ebookr/pkg/config"
 	"log"
+
+	"github.com/Quavke/eBookReader/pkg/config"
 )
 
 func main() {

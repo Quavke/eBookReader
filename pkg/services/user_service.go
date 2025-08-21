@@ -1,12 +1,15 @@
 package services
 
 import (
-	"github.com/Quavke/eBookReader/pkg/models"
-	"github.com/Quavke/eBookReader/pkg/repositories"
+	"context"
 	"fmt"
 	"time"
 
+	"github.com/Quavke/eBookReader/pkg/models"
+	"github.com/Quavke/eBookReader/pkg/repositories"
+
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -21,10 +24,16 @@ type UserService interface {
 
 type UserServiceImpl struct {
 	repo repositories.UserRepo
+	context context.Context
+	redisClient *redis.Client
 }
 
-func NewUserService(repo repositories.UserRepo) *UserServiceImpl{
-	return &UserServiceImpl{repo: repo}
+func NewUserService(repo repositories.UserRepo, context context.Context, redisClient *redis.Client) *UserServiceImpl{
+	return &UserServiceImpl{
+		repo: repo,
+		context: context,
+		redisClient: redisClient,
+	}
 }
 
 var _ UserService = (*UserServiceImpl)(nil)
